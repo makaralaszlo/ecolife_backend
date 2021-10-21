@@ -1,6 +1,5 @@
 import typing
 import hashlib
-import uuid
 
 
 class BasicProfile:
@@ -28,8 +27,9 @@ class BasicProfile:
 
         # password hash a security érdekében
         if _id == 'null':
-            salt = uuid.uuid4().hex
-            self._password = hashlib.sha512((password + salt).encode('utf-8')).hexdigest()
+            #self._salt = uuid.uuid4().hex
+            #self._password = hashlib.sha512((password + self._salt).encode('utf-8')).hexdigest()
+            self._password = hashlib.sha512((password).encode('utf-8')).hexdigest()
         else:
             self._password = password
 

@@ -4,6 +4,8 @@ from database.database import DataBase
 from objects.admin_profile import AdminProfile
 from objects.user_profile import UserProfile
 import json
+import hashlib
+from bson.objectid import ObjectId
 
 
 low_api_profile = Blueprint(name='low_level_profile_api', import_name=__name__)
@@ -12,7 +14,7 @@ admin_db = DataBase('EcoLife', 'admin')
 
 
 @low_api_profile.route(f'{BASE_URI}/create_profile', methods=['POST'])
-def create_profile():
+def create_profile() -> str:
     """
     Payload kinézete AdminProfile esetén:
     {
@@ -136,10 +138,183 @@ def create_profile():
 
 
 @low_api_profile.route(f'{BASE_URI}/get_profile', methods=['GET'])
-def get_profile():
-    pass
+def get_profile() -> str:
+    """
+    Payload kinézete AdminProfile esetén id-vel:
+    {
+        'type': 'AdminProfile',
+        'data': {
+                 '_id': str
+                }
+    }
+    Payload kinézete UserProfile esetén id-vel:
+    {
+        'type': 'UserProfile',
+        'data': {
+                 '_id': str
+                }
+    }
+    Payload kinézete AdminProfile esetén e-mail és jelszó alapján:
+    {
+        'type': 'AdminProfile',
+        'data': {
+                 'email_address': str,
+                 'password': str,
+                }
+    }
+    stb...
+
+    Hiba visszatérés rossz type megadása esetén:
+    {
+        'type': 'Error',
+        'data': {
+                 'description': 'Incorrect type passed'
+                }
+    }
+
+    :return:
+    """
+    req_data = request.json
+
+    if '_id' in req_data['data']:
+        req_data['data']['_id'] = ObjectId(req_data['data']['_id'])
+
+    # ez csak akkor működik ha authentikációról van szó egyébként nem
+    if 'password' in req_data['data'] and 'email_address' in req_data['data']:
+        req_data['data']['password'] = hashlib.sha512((req_data['data']['password']).encode('utf-8')).hexdigest()
+
+    if req_data['type'] == 'AdminProfile':
+        db_resp, success = admin_db.get_element(req_data['data'])
+
+        if not success:
+            ret_data = {
+                'type': 'Error',
+                'data': {
+                    'description': db_resp
+                }
+            }
+        else:
+            for element in db_resp:
+                element['_id'] = str(element['_id'])
+            ret_data = {
+                'type': 'Success',
+                'data': {
+                    'description': db_resp
+                }
+            }
+
+    elif req_data['type'] == 'UserProfile':
+        db_resp, success = user_db.get_element(req_data['data'])
+
+        if not success:
+            ret_data = {
+                'type': 'Error',
+                'data': {
+                    'description': db_resp
+                }
+            }
+        else:
+            for element in db_resp:
+                element['_id'] = str(element['_id'])
+            ret_data = {
+                'type': 'Success',
+                'data': {
+                    'description': db_resp
+                }
+            }
+    else:
+        ret_data = {
+            'type': 'Error',
+            'data': {
+                'description': 'Incorrect type passed'
+            }
+        }
+
+    return json.dumps(ret_data)
 
 
 @low_api_profile.route(f'{BASE_URI}/delete_profile', methods=['POST'])
-def delete_profile():
-    pass
+def delete_profile() -> str:
+    """
+    Payload kinézete AdminProfile esetén id-vel:
+    {
+        'type': 'AdminProfile',
+        'data': {
+                '_id': str
+                }
+    }
+    Payload kinézete UserProfile esetén id-vel:
+    {
+        'type': 'UserProfile',
+        'data': {
+                '_id': str
+                }
+    }
+    Payload kinézete AdminProfile esetén e-mail és jelszó alapján:
+    {
+        'type': 'AdminProfile',
+        'data': {
+                'email_address': str,
+                'password': str,
+                }
+    }
+    stb...
+
+    Hiba visszatérés rossz type megadása esetén:
+    {
+        'type': 'Error',
+        'data': {
+                'description': 'Incorrect type passed'
+                }
+    }
+    :return:
+    """
+    req_data = request.json
+
+    if '_id' in req_data['data']:
+        req_data['data']['_id'] = ObjectId(req_data['data']['_id'])
+
+    if req_data['type'] == 'AdminProfile':
+        db_resp, success = admin_db.delete_element(req_data['data'])
+
+        if not success:
+            ret_data = {
+                'type': 'Error',
+                'data': {
+                    'description': db_resp
+                }
+            }
+        else:
+            ret_data = {
+                'type': 'Success',
+                'data': {
+                    'description': db_resp
+                }
+            }
+
+    elif req_data['type'] == 'UserProfile':
+        db_resp, success = user_db.delete_element(req_data['data'])
+
+        if not success:
+            ret_data = {
+                'type': 'Error',
+                'data': {
+                    'description': db_resp
+                }
+            }
+        else:
+            ret_data = {
+                'type': 'Success',
+                'data': {
+                    'description': f'Successfully deleted {db_resp} element.'
+                }
+            }
+    else:
+        ret_data = {
+            'type': 'Error',
+            'data': {
+                'description': 'Incorrect type passed'
+            }
+        }
+
+    return json.dumps(ret_data)

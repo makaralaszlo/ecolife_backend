@@ -38,20 +38,40 @@ class DataBase:
         :param data_dict: beillesztendő adatok
         :return: sikeresség
         """
-        if self.get_element(search_data_dict).count() > 0:
+        _, exists = self.get_element(search_data_dict)
+        if exists:
             res, success = 'Element already exists in the DataBase!', False
         else:
             res, success = self.__collection.insert(insert_data_dict), True
         return str(res), success
 
-    def get_element(self, search_fields: dict) -> pymongo.CursorType:
+    def get_element(self, search_fields: dict) -> typing.Tuple[typing.Union[list, str], bool]:
         """
         Dicitonaryként kell átadni a search fieldset, majd ezeket az adott collectionban megkeresi és visszadja.
 
         :param search_fields: keresendő mezőértékek
         :return: megtalált rekordok
         """
-        return self.__collection.find(search_fields)
+        resp_data = []
+        if self.__collection.find(search_fields).count() > 0:
+            for element in self.__collection.find(search_fields):
+                resp_data.append(element)
+            return resp_data, True
+        else:
+            return 'Element does not exists in the DataBase!', False
+
+    def delete_element(self, search_fields: dict) -> typing.Tuple[typing.Union[int, str], bool]:
+        """
+        Dictionaryban átadott elemek törlése az adatbázisból.
+
+        :param search_fields: törölendő rekordok kereső értéke
+        :return: törölt rekordok száma
+        """
+        resp = self.__collection.delete_many(search_fields)
+        if resp.deleted_count > 0:
+            return resp.deleted_count, True
+        else:
+            return 'Element does not exists in the DataBase!', False
 
     def drop_collection(self) -> str:
         """
