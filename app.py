@@ -1,5 +1,9 @@
 from flask import Flask
+from api.low_level_api import low_api
+
+
 app = Flask(__name__)
+app.register_blueprint(low_api)
 
 
 @app.route("/")

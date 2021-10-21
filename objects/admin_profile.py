@@ -1,7 +1,4 @@
-from reward import Reward
-from task import Task
-from basic_profile import BasicProfile
-import typing
+from objects.basic_profile import BasicProfile
 
 
 class AdminProfile(BasicProfile):
@@ -10,7 +7,7 @@ class AdminProfile(BasicProfile):
     """
 
     def __init__(self, _id: str, email_address: str, first_name: str, last_name: str, date_of_birth: str, password: str,
-                 company: str, rewards: typing.Tuple[Reward], tasks: typing.Tuple[Task]) -> None:
+                 company: str, rewards: list, tasks: list) -> None:
         """
         Inicializáló függvény.
 

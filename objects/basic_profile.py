@@ -17,6 +17,7 @@ class BasicProfile:
         :param date_of_birth: profilhoz tartozó születésdátum
         :param password: profilhoz tartozó jelszó
         """
+        # új profil esetén nem lesz ID, a mongodb fogja ezt előállítani
         self._id = _id
         self._email_address = email_address
         self._first_name = first_name
@@ -30,14 +31,25 @@ class BasicProfile:
 
         :return: objektum dict formában
         """
-        return {
-            '_id': self._id,
-            'email_address': self._email_address,
-            'first_name': self._first_name,
-            'last_name': self._last_name,
-            'date_of_birth': self._date_of_birth,
-            'password': self._password
-        }
+        if str(self._id) != 'null':
+            data = {
+                '_id': self._id.toString(),
+                'email_address': self._email_address,
+                'first_name': self._first_name,
+                'last_name': self._last_name,
+                'date_of_birth': self._date_of_birth,
+                'password': self._password
+            }
+        else:
+            data = {
+                'email_address': self._email_address,
+                'first_name': self._first_name,
+                'last_name': self._last_name,
+                'date_of_birth': self._date_of_birth,
+                'password': self._password
+            }
+
+        return data
 
     def __eq__(self, other: typing.Any) -> bool:
         """

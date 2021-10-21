@@ -1,5 +1,6 @@
 import pymongo
 import config.database_keys as database_keys
+import typing
 
 
 class DataBase:
@@ -15,7 +16,8 @@ class DataBase:
         :param database: adatbázis név
         :param collection: kollekció név
         """
-        self.__client = pymongo.MongoClient(f'mongodb+srv://ecolife_backend:{database_keys.PASSWORD}@cluster0.gymek.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+        self.__client = pymongo.MongoClient(
+            f'mongodb+srv://ecolife_backend:{database_keys.PASSWORD}@cluster0.gymek.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
         self.__database_name = database
         self.__collection_name = collection
 
@@ -29,3 +31,33 @@ class DataBase:
         else:
             self.__collection = self.__database[collection]
 
+    def insert_element(self, search_data_dict: dict, insert_data_dict: dict) -> typing.Tuple[str, bool]:
+        """
+        Az átadott dictionary elemeiet beilleszti az adott adatbázisba.
+
+        :param data_dict: beillesztendő adatok
+        :return: sikeresség
+        """
+        if self.get_element(search_data_dict).count() > 0:
+            res, success = 'Element already exists in the DataBase!', False
+        else:
+            res, success = self.__collection.insert(insert_data_dict), True
+        return str(res), success
+
+    def get_element(self, search_fields: dict) -> pymongo.CursorType:
+        """
+        Dicitonaryként kell átadni a search fieldset, majd ezeket az adott collectionban megkeresi és visszadja.
+
+        :param search_fields: keresendő mezőértékek
+        :return: megtalált rekordok
+        """
+        return self.__collection.find(search_fields)
+
+    def drop_collection(self) -> str:
+        """
+        Törli a kollekciót az összes tartalmával.
+
+        :return: sikerességi kimenetel
+        """
+        res = self.__collection.drop()
+        return res

@@ -1,14 +1,9 @@
-from reward import Reward
-from submit import Submit
-import typing
-
-
 class Task:
     """
     Feladatokat repreználtáló osztály.
     """
-    def __init__(self, _id: str, company: str, reward: Reward, max_submission_number: int, immediately_evaluated: bool,
-                 title: str, description: str, expiration: str, submits: typing.Tuple[Submit]) -> None:
+    def __init__(self, _id: str, company: str, reward: str, max_submission_number: int, immediately_evaluated: bool,
+                 title: str, description: str, expiration: str, submits: list) -> None:
         """
         Inicializáló függvény.
 
