@@ -1,4 +1,6 @@
 import typing
+import hashlib
+import uuid
 
 
 class BasicProfile:
@@ -23,7 +25,13 @@ class BasicProfile:
         self._first_name = first_name
         self._last_name = last_name
         self._date_of_birth = date_of_birth
-        self._password = password
+
+        # password hash a security érdekében
+        if _id == 'null':
+            salt = uuid.uuid4().hex
+            self._password = hashlib.sha512((password + salt).encode('utf-8')).hexdigest()
+        else:
+            self._password = password
 
     def to_dict(self) -> dict:
         """
