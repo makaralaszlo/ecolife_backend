@@ -1,5 +1,6 @@
 import typing
 import hashlib
+import jwt
 
 
 class BasicProfile:
@@ -41,7 +42,7 @@ class BasicProfile:
         """
         if str(self._id) != 'null':
             data = {
-                '_id': self._id.toString(),
+                '_id': str(self._id),
                 'email_address': self._email_address,
                 'first_name': self._first_name,
                 'last_name': self._last_name,
@@ -71,3 +72,21 @@ class BasicProfile:
             return NotImplemented
 
         return self._id == other._id
+
+    def get_bearer_token(self) -> str:
+        self._jwt = jwt.encode(
+            {
+                'iss': 'EcoLife',
+                'sub': str(self._id),
+                'name': self._first_name + self._last_name
+            },
+            'secret',
+            algorithm='HS256'
+        )
+        return self._jwt
+
+    def get_profile_based_on_token(self, token: str) -> bool:
+        data = jwt.decode(token, 'secret', algorithms=['HS256'])
+        if data['sub'] == str(self._id):
+            return True
+        return False

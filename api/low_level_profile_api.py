@@ -5,8 +5,8 @@ from objects.admin_profile import AdminProfile
 from objects.user_profile import UserProfile
 import json
 import hashlib
+import typing
 from bson.objectid import ObjectId
-
 
 low_api_profile = Blueprint(name='low_level_profile_api', import_name=__name__)
 user_db = DataBase('EcoLife', 'user')
@@ -14,7 +14,7 @@ admin_db = DataBase('EcoLife', 'admin')
 
 
 @low_api_profile.route(f'{BASE_URI}/create_profile', methods=['POST'])
-def create_profile() -> str:
+def create_profile_endpoint() -> str:
     """
     Payload kinézete AdminProfile esetén:
     {
@@ -138,7 +138,7 @@ def create_profile() -> str:
 
 
 @low_api_profile.route(f'{BASE_URI}/get_profile', methods=['GET'])
-def get_profile() -> str:
+def get_profile_endpoint() -> str:
     """
     Payload kinézete AdminProfile esetén id-vel:
     {
@@ -234,7 +234,7 @@ def get_profile() -> str:
 
 
 @low_api_profile.route(f'{BASE_URI}/delete_profile', methods=['POST'])
-def delete_profile() -> str:
+def delete_profile_endpoint() -> str:
     """
     Payload kinézete AdminProfile esetén id-vel:
     {
@@ -318,3 +318,61 @@ def delete_profile() -> str:
         }
 
     return json.dumps(ret_data)
+
+
+def create_profile():
+    pass
+
+
+def get_profile(data: dict) -> typing.Union[str, typing.List[AdminProfile], typing.List[UserProfile]]:
+    """
+    :return:
+    """
+    if '_id' in data['data']:
+        data['data']['_id'] = ObjectId(data['data']['_id'])
+
+    # ez csak akkor működik ha authentikációról van szó egyébként nem
+    if 'password' in data['data'] and 'email_address' in data['data']:
+        data['data']['password'] = hashlib.sha512((data['data']['password']).encode('utf-8')).hexdigest()
+
+    if data['type'] == 'AdminProfile':
+        db_resp, success = admin_db.get_element(data['data'])
+
+        if not success:
+            return 'Incorrect user data!'
+        else:
+            admin_profiles = []
+            for element in db_resp:
+                element['_id'] = str(element['_id'])
+                admin_profiles.append(AdminProfile(_id=element['_id'],
+                                                   email_address=element['email_address'],
+                                                   first_name=element['first_name'],
+                                                   last_name=element['last_name'],
+                                                   date_of_birth=element['date_of_birth'],
+                                                   password=element['password'],
+                                                   company=element['company'],
+                                                   tasks=element['tasks'],
+                                                   rewards=element['rewards']))
+            return admin_profiles
+
+    elif data['type'] == 'UserProfile':
+        db_resp, success = user_db.get_element(data['data'])
+
+        if not success:
+            return 'Incorrect user data!'
+        else:
+            user_profiles = []
+            for element in db_resp:
+                element['_id'] = str(element['_id'])
+                user_profiles.append(UserProfile(_id=element['_id'],
+                                                 email_address=element['email_address'],
+                                                 first_name=element['first_name'],
+                                                 last_name=element['last_name'],
+                                                 date_of_birth=element['date_of_birth'],
+                                                 password=element['password'],
+                                                 rewards=element['rewards'],
+                                                 tasks=element['tasks']
+                                                 ))
+            return user_profiles
+    else:
+        return 'Incorrect type passed'

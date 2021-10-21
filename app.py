@@ -5,6 +5,8 @@ from api.low_level_reward_api import low_api_reward
 from api.low_level_submit_api import low_api_submit
 from api.low_level_task_api import low_api_task
 
+from api.high_level_api import high_api
+
 
 app = Flask(__name__)
 app.register_blueprint(low_api)
@@ -13,10 +15,12 @@ app.register_blueprint(low_api_reward)
 app.register_blueprint(low_api_submit)
 app.register_blueprint(low_api_task)
 
+app.register_blueprint(high_api)
 
-@app.route("/")
+
+@app.route("/", methods=['GET'])
 def hello():
-    return "Hello, World!"
+    return "EcoLife backend is up and running! :)"
 
 
 # TODO ezt törölni kell az Azure deployhoz
