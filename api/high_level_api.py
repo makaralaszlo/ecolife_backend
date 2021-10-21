@@ -2,6 +2,7 @@ from flask import Blueprint, request
 from config.api_config import BASE_URI
 import api.low_level_profile_api as low_level_profile_api
 import json
+import typing
 
 
 high_api = Blueprint(name='high_level_api', import_name=__name__)
@@ -87,10 +88,33 @@ def login_user():
 
 @high_api.route(f'{BASE_URI}/logout', methods=['POST'])
 def logout_user():
-    req_data = request.json
-    print(request.headers['Authorization'])
+    """
+    Payload kinézete:
+    {
+        'type': 'UserProfile',
+        'data': {}
+    }
 
-    return ''
+    :return:
+    """
+    global logged_in_users
+    token = request.headers['Authorization'].split(' ')[-1]
+
+    if token not in logged_in_users:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'User was not logged in!'
+            }
+        })
+
+    del logged_in_users[token]
+    return json.dumps({
+        'type': 'Success',
+        'data': {
+            'description': 'User logged out!'
+        }
+    })
 
 
 def register_user():
