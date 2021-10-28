@@ -3,16 +3,25 @@ from config.api_config import BASE_URI
 import api.low_level_profile_api as low_level_profile_api
 import json
 import typing
-
+from objects.admin_profile import AdminProfile
+from objects.user_profile import UserProfile
 
 high_api = Blueprint(name='high_level_api', import_name=__name__)
 
-
 logged_in_users = {}
+users = []
+
+
+def get_profile_object(user_id: str) -> typing.Tuple[typing.Union[AdminProfile, UserProfile, str], bool]:
+    global users
+    for user in users:
+        if user.get_id() == user_id:
+            return user, True
+    return 'Profile not loaded in correctly!', False
 
 
 @high_api.route(f'{BASE_URI}/login', methods=['POST'])
-def login_user():
+def login_user() -> str:
     """
     Payload kinézete AdminProfile esetén e-mail és jelszó alapján:
     {
@@ -34,6 +43,7 @@ def login_user():
     :return:
     """
     global logged_in_users
+    global users
     # felhasználó átadja az email és pw-t
     req_data = request.json
 
@@ -46,6 +56,7 @@ def login_user():
         })
 
     profiles = low_level_profile_api.get_profile(req_data)
+    users += profiles
 
     if type(profiles) is str:
         return json.dumps({
@@ -87,7 +98,7 @@ def login_user():
 
 
 @high_api.route(f'{BASE_URI}/logout', methods=['POST'])
-def logout_user():
+def logout_user() -> str:
     """
     Payload kinézete:
     {
@@ -117,19 +128,48 @@ def logout_user():
     })
 
 
-def register_user():
-    pass
+@high_api.route(f'{BASE_URI}/tasks_mobile', methods=['GET'])
+def get_mobile_tasks_screen() -> str:
+    global logged_in_users
+    token = request.headers['Authorization'].split(' ')[-1]
 
+    if token not in logged_in_users:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'User was not logged in!'
+            }
+        })
 
-def get_mobile_main_screen():
-    pass
+    profile, success = get_profile_object(logged_in_users[token])
+
+    if not success:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': profile
+            }
+        })
+
+    if type(profile) != UserProfile:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'Only Users can access these type of content!'
+            }
+        })
+
+    resp = {
+        'type': 'Success',
+        'data': {
+            'tasks': []
+        }
+    }
+
+    return ''
 
 
 def get_mobile_rewards_screen():
-    pass
-
-
-def get_mobile_tasks_screen():
     pass
 
 

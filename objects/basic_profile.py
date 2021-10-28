@@ -74,6 +74,11 @@ class BasicProfile:
         return self._id == other._id
 
     def get_bearer_token(self) -> str:
+        """
+        Bearer token készítése a profilhoz. Lejárat és egyebek nincsenek leimplementálva.
+
+        :return: token
+        """
         self._jwt = jwt.encode(
             {
                 'iss': 'EcoLife',
@@ -90,3 +95,6 @@ class BasicProfile:
         if data['sub'] == str(self._id):
             return True
         return False
+
+    def get_id(self) -> str:
+        return self._id

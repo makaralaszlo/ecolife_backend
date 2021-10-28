@@ -320,10 +320,6 @@ def delete_profile_endpoint() -> str:
     return json.dumps(ret_data)
 
 
-def create_profile():
-    pass
-
-
 def get_profile(data: dict) -> typing.Union[str, typing.List[AdminProfile], typing.List[UserProfile]]:
     """
     :return:
