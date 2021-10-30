@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from api.low_level_api import low_api
 from api.low_level_profile_api import low_api_profile
 from api.low_level_reward_api import low_api_reward
@@ -20,7 +20,7 @@ app.register_blueprint(high_api)
 
 @app.route("/", methods=['GET'])
 def hello():
-    return "EcoLife backend is up and running! :)"
+    return render_template('swaggerui.html')
 
 
 # TODO ezt törölni kell az Azure deployhoz
