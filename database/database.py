@@ -81,3 +81,7 @@ class DataBase:
         """
         res = self.__collection.drop()
         return res
+
+    def update_element(self):
+        pass
+        # TODO implementálni ezt jelszó váltásra

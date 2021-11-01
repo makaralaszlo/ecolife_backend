@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from config.api_config import BASE_URI
 import api.low_level_profile_api as low_level_profile_api
+import api.low_level_task_api as low_level_task_api
 import json
 import typing
 from objects.admin_profile import AdminProfile
@@ -131,7 +132,15 @@ def logout_user() -> str:
 @high_api.route(f'{BASE_URI}/tasks_mobile', methods=['GET'])
 def get_mobile_tasks_screen() -> str:
     global logged_in_users
-    token = request.headers['Authorization'].split(' ')[-1]
+    try:
+        token = request.headers['Authorization'].split(' ')[-1]
+    except Exception as exp:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': str(exp)
+            }
+        })
 
     if token not in logged_in_users:
         return json.dumps({
@@ -162,11 +171,25 @@ def get_mobile_tasks_screen() -> str:
     resp = {
         'type': 'Success',
         'data': {
-            'tasks': []
+            'tasks': low_level_task_api.get_task({'_id': profile.get_id()})
         }
     }
 
-    return ''
+    return json.dumps(resp)
+
+
+@high_api.route(f'{BASE_URI}/main_screen', methods=['GET'])
+def get_main_screen():
+    # ha admin akkor az admin main screen függvényt kell meghvini
+    # ha user akkor a user main screent kell meghivni
+    pass
+
+
+@high_api.route(f'{BASE_URI}/task_screen', methods=['GET'])
+def get_task_screen():
+    # ha admin akkor az admin task screen
+    # ha user akkor a user main screent
+    pass
 
 
 def get_mobile_rewards_screen():
@@ -183,4 +206,9 @@ def get_admin_main_screen():
 
 
 def get_admin_task_screen():
+    pass
+
+
+def create_task():
+    # admin csinál taskot
     pass
