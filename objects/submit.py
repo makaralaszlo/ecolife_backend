@@ -12,7 +12,7 @@ class Submit:
         :param user_id: A feladathoz beküldő user ID-ja adatbázisból
         :param task_id: A feladat ID-ja adatbázisból
         :param image: A beküldött kép
-        :param state: Állapota a beküldésnek ['ACCEPTED', 'REJECTED', 'PENDING']
+        :param state: Állapota a beküldésnek ['AVAILABLE', 'ACCEPTED', 'REJECTED', 'PENDING']
         """
         self.__user_id = user_id
         self.__task_id = task_id

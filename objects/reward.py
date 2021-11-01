@@ -2,6 +2,7 @@ class Reward:
     """
     Jutalmat reprezántáló osztály.
     """
+
     def __init__(self, _id: str, title: str, description: str, company: str, redeem_code: str, expiration: str) -> None:
         """
         Inicializáló függvény.
@@ -26,14 +27,24 @@ class Reward:
 
         :return: objektum dict formában
         """
-        return {
-            '_id': self.__id,
-            'title': self.__title,
-            'description': self.__description,
-            'company': self.__company,
-            'redeem_code': self.__redeem_code,
-            'expiration': self.__expiration
-        }
+        if str(self.__id) != 'null':
+            data = {
+                '_id': str(self.__id),
+                'title': self.__title,
+                'description': self.__description,
+                'company': self.__company,
+                'redeem_code': self.__redeem_code,
+                'expiration': self.__expiration
+            }
+        else:
+            data = {
+                'title': self.__title,
+                'description': self.__description,
+                'company': self.__company,
+                'redeem_code': self.__redeem_code,
+                'expiration': self.__expiration
+            }
+        return data
 
     def __eq__(self, other):
         """

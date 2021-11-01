@@ -38,7 +38,11 @@ class DataBase:
         :param data_dict: beillesztendő adatok
         :return: sikeresség
         """
-        _, exists = self.get_element(search_data_dict)
+        if search_data_dict == {'special_case': 'insert_anyway'}:
+            exists = False
+        else:
+            _, exists = self.get_element(search_data_dict)
+
         if exists:
             res, success = 'Element already exists in the DataBase!', False
         else:
@@ -82,6 +86,8 @@ class DataBase:
         res = self.__collection.drop()
         return res
 
-    def update_element(self):
-        pass
-        # TODO implementálni ezt jelszó váltásra
+    # TODO test this method
+    def update_element(self, search_fields: dict, update_data: dict):
+        resp = self.__collection.update_many(search_fields, {"$set": update_data})
+        print(resp)
+        return resp

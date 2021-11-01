@@ -1,23 +1,110 @@
-from flask import Blueprint, request
+import typing
+from flask import Blueprint
 from objects.task import Task
 from database.database import DataBase
-from config.api_config import BASE_URI
 
 task_db = DataBase('EcoLife', 'tasks')
 
 low_api_task = Blueprint(name='low_level_task_api', import_name=__name__)
 
 
-#@low_api_task.route(f'{BASE_URI}/create_task', methods=['POST'])
-def create_task():
-    pass
+def create_task(data: dict) -> typing.Tuple[dict, bool]:
+    if '_id' in data['data']:
+        return {
+                   'type': 'Error',
+                   'data': {
+                       'description': 'ID should not be provided!'
+                   }
+               }, False
+
+    try:
+        task = Task(_id=data['data']['_id'] if '_id' in data['data'] else 'null',
+                    company=data['data']['company'],
+                    reward=data['data']['reward'],
+                    max_submission_number=data['data']['max_submission_number'],
+                    immediately_evaluated=data['data']['immediately_evaluated'],
+                    title=data['data']['title'],
+                    description=data['data']['description'],
+                    expiration=data['data']['expiration'],
+                    submits=data['data']['submits'])
+
+        db_resp, success = task_db.insert_element(
+            search_data_dict={'special_case': 'insert_anyway'},
+            insert_data_dict=task.to_dict())
+
+        if not success:
+            return {
+                       'type': 'Error',
+                       'data': {
+                           'description': db_resp
+                       }
+                   }, False
+        else:
+            return {
+                       'type': 'Success',
+                       'data': {
+                           'description': db_resp
+                       }
+                   }, True
+
+    except Exception as exp:
+        return {
+                   'type': 'Error',
+                   'data': {
+                       'description': str(exp)
+                   }
+               }, False
 
 
-#@low_api_task.route(f'{BASE_URI}/get_task', methods=['GET'])
-def get_task(data: dict):
-    return task_db.get_element(data)
+def get_task(data: dict) -> typing.Tuple[dict, bool]:
+    if '_id' not in data['data']:
+        return {
+                   'type': 'Error',
+                   'data': {
+                       'description': 'ID should be provided!'
+                   }
+               }, False
+
+    db_resp, success = task_db.get_element(data['data']['_id'])
+
+    if not success:
+        return {
+                   'type': 'Error',
+                   'data': {
+                       'description': db_resp
+                   }
+               }, False
+    else:
+        return {
+                   'type': 'Success',
+                   'data': {
+                       'description': db_resp
+                   }
+               }, True
 
 
-@low_api_task.route(f'{BASE_URI}/delete_task', methods=['POST'])
-def delete_task():
-    pass
+def delete_task(data: dict) -> typing.Tuple[dict, bool]:
+    if '_id' not in data['data']:
+        return {
+                   'type': 'Error',
+                   'data': {
+                       'description': 'ID should be provided!'
+                   }
+               }, False
+
+    db_resp, success = task_db.delete_element(data['data']['_id'])
+
+    if not success:
+        return {
+                   'type': 'Error',
+                   'data': {
+                       'description': db_resp
+                   }
+               }, False
+    else:
+        return {
+                   'type': 'Success',
+                   'data': {
+                       'description': db_resp
+                   }
+               }, True

@@ -36,17 +36,31 @@ class Task:
 
         :return: objektum dict formában
         """
-        return {
-            '_id': self.__id,
-            'company': self.__company,
-            'reward': self.__reward,
-            'max_submission_number': self.__max_submission_number,
-            'immediately_evaluated': self.__immediately_evaluated,
-            'title': self.__title,
-            'description': self.__description,
-            'expiration': self.__expiration,
-            'submits': self.__submits
-        }
+        if str(self.__id) != 'null':
+            data = {
+                '_id': str(self.__id),
+                'company': self.__company,
+                'reward': self.__reward,
+                'max_submission_number': self.__max_submission_number,
+                'immediately_evaluated': self.__immediately_evaluated,
+                'title': self.__title,
+                'description': self.__description,
+                'expiration': self.__expiration,
+                'submits': self.__submits
+            }
+        else:
+            data = {
+                'company': self.__company,
+                'reward': self.__reward,
+                'max_submission_number': self.__max_submission_number,
+                'immediately_evaluated': self.__immediately_evaluated,
+                'title': self.__title,
+                'description': self.__description,
+                'expiration': self.__expiration,
+                'submits': self.__submits
+            }
+
+        return data
 
     def __eq__(self, other):
         """
