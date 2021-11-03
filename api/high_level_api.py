@@ -207,7 +207,6 @@ def get_mobile_tasks_screen() -> str:
 @high_api.route(f'{BASE_URI}/user_task_screen', methods=['GET'])
 def get_user_task_screen():
     # ha user akkor a user main screent kell meghivni
-    req = request.json
     try:
         token = request.headers['Authorization'].split(' ')[-1]
     except Exception as exp:
@@ -280,10 +279,12 @@ def get_user_task_screen():
         'type': 'Success',
         'data':
             {
-                'AVAILABLE': available_tasks,
-                'PENDING': pending_tasks,
-                'ACCEPTED': accepted_tasks,
-                'REJECTED': rejected_tasks
+                'tasks': {
+                    'AVAILABLE': available_tasks,
+                    'PENDING': pending_tasks,
+                    'ACCEPTED': accepted_tasks,
+                    'REJECTED': rejected_tasks
+                }
             }
     })
 
@@ -299,18 +300,9 @@ def get_mobile_rewards_screen():
     pass
 
 
-def get_mobile_task_screen():
-    # ez csak 1 darab task teljes nézeete
-    pass
-
-
-def get_admin_main_screen():
-    pass
-
-
-@high_api.route(f'{BASE_URI}/create_task', methods=['POST'])
-def create_task() -> str:
-    req = request.json
+@high_api.route(f'{BASE_URI}/user_profile_screen', methods=['GET'])
+def get_mobile_profile_screen() -> str:
+    # össze kell szedni a profild adatokat, kuponokat abből a kupon title és description
     try:
         token = request.headers['Authorization'].split(' ')[-1]
     except Exception as exp:
@@ -327,128 +319,180 @@ def create_task() -> str:
     else:
         profile, success = resp
 
-    if type(profile) != AdminProfile:
+    if type(profile) != UserProfile:
         return json.dumps({
             'type': 'Error',
             'data': {
-                'description': 'Only Admins can access these type of content!'
+                'description': 'Only Users can access these type of content!'
             }
         })
 
-    resp, success = low_level_task_api.create_task(req)
+    profile_object = {}
+    coupons = []
 
-    return json.dumps(resp)
+    task_list = profile.to_dict()['tasks']
 
-
-@high_api.route(f'{BASE_URI}/get_task', methods=['GET'])
-def get_task() -> str:
-    req = request.json
-
-    resp, success = low_level_task_api.get_task(req)
-
-    return json.dumps(resp)
-
-
-@high_api.route(f'{BASE_URI}/delete_task', methods=['POST'])
-def delete_task() -> str:
-    req = request.json
-    try:
-        token = request.headers['Authorization'].split(' ')[-1]
-    except Exception as exp:
-        return json.dumps({
-            'type': 'Error',
+    for task in task_list:
+        task_resp, task_success = low_level_task_api.get_task({
             'data': {
-                'description': str(exp)
+                '_id': task
             }
         })
 
-    resp = check_profile_login(token)
-    if type(resp) == str:
+        coupons.append(## TODO FINISH THIS)
+
+    return json.dumps({
+        'type': 'Success',
+        'data':
+            {
+                'profile': profile_object,
+                'coupons': coupons
+            }
+    })
+
+    def get_mobile_task_screen():
+        # ez csak 1 darab task teljes nézeete
+        pass
+
+    def get_admin_main_screen():
+        pass
+
+    @high_api.route(f'{BASE_URI}/create_task', methods=['POST'])
+    def create_task() -> str:
+        req = request.json
+        try:
+            token = request.headers['Authorization'].split(' ')[-1]
+        except Exception as exp:
+            return json.dumps({
+                'type': 'Error',
+                'data': {
+                    'description': str(exp)
+                }
+            })
+
+        resp = check_profile_login(token)
+        if type(resp) == str:
+            return json.dumps(resp)
+        else:
+            profile, success = resp
+
+        if type(profile) != AdminProfile:
+            return json.dumps({
+                'type': 'Error',
+                'data': {
+                    'description': 'Only Admins can access these type of content!'
+                }
+            })
+
+        resp, success = low_level_task_api.create_task(req)
+
         return json.dumps(resp)
-    else:
-        profile, success = resp
 
-    if type(profile) != AdminProfile:
-        return json.dumps({
-            'type': 'Error',
-            'data': {
-                'description': 'Only Admins can access these type of content!'
-            }
-        })
+    @high_api.route(f'{BASE_URI}/get_task', methods=['GET'])
+    def get_task() -> str:
+        req = request.json
 
-    resp, success = low_level_task_api.delete_task(req)
+        resp, success = low_level_task_api.get_task(req)
 
-    return json.dumps(resp)
-
-
-@high_api.route(f'{BASE_URI}/create_reward', methods=['POST'])
-def create_reward():
-    req = request.json
-    try:
-        token = request.headers['Authorization'].split(' ')[-1]
-    except Exception as exp:
-        return json.dumps({
-            'type': 'Error',
-            'data': {
-                'description': str(exp)
-            }
-        })
-
-    resp = check_profile_login(token)
-    if type(resp) == str:
         return json.dumps(resp)
-    else:
-        profile, success = resp
 
-    if type(profile) != AdminProfile:
-        return json.dumps({
-            'type': 'Error',
-            'data': {
-                'description': 'Only Admins can access these type of content!'
-            }
-        })
+    @high_api.route(f'{BASE_URI}/delete_task', methods=['POST'])
+    def delete_task() -> str:
+        req = request.json
+        try:
+            token = request.headers['Authorization'].split(' ')[-1]
+        except Exception as exp:
+            return json.dumps({
+                'type': 'Error',
+                'data': {
+                    'description': str(exp)
+                }
+            })
 
-    resp, success = low_level_reward_api.create_reward(req)
+        resp = check_profile_login(token)
+        if type(resp) == str:
+            return json.dumps(resp)
+        else:
+            profile, success = resp
 
-    return json.dumps(resp)
+        if type(profile) != AdminProfile:
+            return json.dumps({
+                'type': 'Error',
+                'data': {
+                    'description': 'Only Admins can access these type of content!'
+                }
+            })
 
+        resp, success = low_level_task_api.delete_task(req)
 
-@high_api.route(f'{BASE_URI}/get_reward', methods=['GET'])
-def get_reward():
-    req = request.json
-
-    resp, success = low_level_reward_api.get_reward(req)
-
-    return json.dumps(resp)
-
-
-@high_api.route(f'{BASE_URI}/delete_reward', methods=['POST'])
-def delete_reward():
-    req = request.json
-    try:
-        token = request.headers['Authorization'].split(' ')[-1]
-    except Exception as exp:
-        return json.dumps({
-            'type': 'Error',
-            'data': {
-                'description': str(exp)
-            }
-        })
-
-    resp = check_profile_login(token)
-    if type(resp) == str:
         return json.dumps(resp)
-    else:
-        profile, success = resp
 
-    if type(profile) != AdminProfile:
-        return json.dumps({
-            'type': 'Error',
-            'data': {
-                'description': 'Only Admins can access these type of content!'
-            }
-        })
+    @high_api.route(f'{BASE_URI}/create_reward', methods=['POST'])
+    def create_reward():
+        req = request.json
+        try:
+            token = request.headers['Authorization'].split(' ')[-1]
+        except Exception as exp:
+            return json.dumps({
+                'type': 'Error',
+                'data': {
+                    'description': str(exp)
+                }
+            })
 
-    resp, success = low_level_reward_api.delete_reward(req)
+        resp = check_profile_login(token)
+        if type(resp) == str:
+            return json.dumps(resp)
+        else:
+            profile, success = resp
 
-    return json.dumps(resp)
+        if type(profile) != AdminProfile:
+            return json.dumps({
+                'type': 'Error',
+                'data': {
+                    'description': 'Only Admins can access these type of content!'
+                }
+            })
+
+        resp, success = low_level_reward_api.create_reward(req)
+
+        return json.dumps(resp)
+
+    @high_api.route(f'{BASE_URI}/get_reward', methods=['GET'])
+    def get_reward():
+        req = request.json
+
+        resp, success = low_level_reward_api.get_reward(req)
+
+        return json.dumps(resp)
+
+    @high_api.route(f'{BASE_URI}/delete_reward', methods=['POST'])
+    def delete_reward():
+        req = request.json
+        try:
+            token = request.headers['Authorization'].split(' ')[-1]
+        except Exception as exp:
+            return json.dumps({
+                'type': 'Error',
+                'data': {
+                    'description': str(exp)
+                }
+            })
+
+        resp = check_profile_login(token)
+        if type(resp) == str:
+            return json.dumps(resp)
+        else:
+            profile, success = resp
+
+        if type(profile) != AdminProfile:
+            return json.dumps({
+                'type': 'Error',
+                'data': {
+                    'description': 'Only Admins can access these type of content!'
+                }
+            })
+
+        resp, success = low_level_reward_api.delete_reward(req)
+
+        return json.dumps(resp)
