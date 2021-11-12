@@ -1,5 +1,4 @@
 Flask>=1.0,<=1.1.2
-"pymongo[srv]"
-bson
-pymongo
+pymongo[srv]
+pymongo==3.2.1
 pyjwt

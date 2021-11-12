@@ -80,7 +80,7 @@ def login_user() -> str:
             'data': {
                 'description': 'Email address or Password not provided correctly!'
             }
-        })
+        }), 400
 
     profiles = low_level_profile_api.get_profile(req_data)
     users += profiles
@@ -91,21 +91,21 @@ def login_user() -> str:
             'data': {
                 'description': profiles
             }
-        })
+        }), 400
     elif len(profiles) > 1:
         return json.dumps({
             'type': 'Error',
             'data': {
                 'description': 'Internal server error! Multiple profiles with same e-mail assigned!'
             }
-        })
+        }), 400
     elif len(profiles) == 0:
         return json.dumps({
             'type': 'Error',
             'data': {
                 'description': 'No profile assigned to these values!'
             }
-        })
+        }), 400
 
     profile_bearer_token = ''
     for profile_id, bearer_token in zip(logged_in_users.values(), logged_in_users.keys()):
@@ -121,7 +121,7 @@ def login_user() -> str:
         'data': {
             'description': profile_bearer_token
         }
-    })
+    }), 200
 
 
 @high_api.route(f'{BASE_URI}/logout', methods=['POST'])
@@ -197,7 +197,7 @@ def get_mobile_tasks_screen() -> str:
     resp = {
         'type': 'Success',
         'data': {
-            'tasks': low_level_task_api.get_task({'_id': profile.get_id()})
+            'description': low_level_task_api.get_task({'_id': profile.get_id()})
         }
     }
 
@@ -279,7 +279,7 @@ def get_user_task_screen():
         'type': 'Success',
         'data':
             {
-                'tasks': {
+                'description': {
                     'AVAILABLE': available_tasks,
                     'PENDING': pending_tasks,
                     'ACCEPTED': accepted_tasks,
@@ -339,7 +339,7 @@ def get_mobile_profile_screen() -> str:
             }
         })
 
-        coupons.append(## TODO FINISH THIS)
+        #coupons.append(## TODO FINISH THIS)
 
     return json.dumps({
         'type': 'Success',
