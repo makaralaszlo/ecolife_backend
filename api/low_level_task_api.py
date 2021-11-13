@@ -93,7 +93,7 @@ def delete_task(data: dict) -> typing.Tuple[dict, bool]:
                    }
                }, False
 
-    db_resp, success = task_db.delete_element(data['data']['_id'])
+    db_resp, success = task_db.delete_element({'_id': ObjectId(data['data']['_id'])})
 
     if not success:
         return {

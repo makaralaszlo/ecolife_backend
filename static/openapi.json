@@ -546,6 +546,136 @@
           }
         }
       }
+    },
+    "/user_profile_screen": {
+      "get": {
+        "summary": "A mobil készülékhez szükséges felhasználó profillal és kuponokkal kapcsolatos adatokat összegyüjtő API endpoint.",
+        "description": "Ezt csakis kizárólag a UserProfile-lal rendelkező felhasználók tudják lekérdezni, akik be vannak jelentkezve, vagyis a Bearer tokennel rendelkeznek az Authorizációs headerben.",
+        "operationId": "getUserProfileTaskScreen",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Profile",
+            "description": "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "UserProfile"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "profile": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string"
+                        },
+                        "email_address": {
+                          "type": "string"
+                        },
+                        "first_name": {
+                          "type": "string"
+                        },
+                        "last_name": {
+                          "type": "string"
+                        },
+                        "date_of_birth": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        },
+                        "rewards": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "tasks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "coupons": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "company": {
+                            "type": "string"
+                          },
+                          "redeem_code": {
+                            "type": "string"
+                          },
+                          "expiration": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Error"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Only Users can access these type of content!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "securityDefinitions": {

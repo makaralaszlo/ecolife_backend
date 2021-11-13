@@ -2,6 +2,7 @@ import typing
 from flask import Blueprint
 from objects.reward import Reward
 from database.database import DataBase
+from bson.objectid import ObjectId
 
 low_api_reward = Blueprint(name='low_level_reward_api', import_name=__name__)
 reward_db = DataBase('EcoLife', 'reward')
@@ -61,7 +62,7 @@ def get_reward(data: dict) -> typing.Tuple[dict, bool]:
                    }
                }, False
 
-    db_resp, success = reward_db.get_element(data['data']['_id'])
+    db_resp, success = reward_db.get_element({'_id': ObjectId(data['data']['_id'])})
 
     if not success:
         return {
@@ -88,7 +89,7 @@ def delete_reward(data: dict) -> typing.Tuple[dict, bool]:
                    }
                }, False
 
-    db_resp, success = reward_db.delete_element(data['data']['_id'])
+    db_resp, success = reward_db.delete_element({'_id': ObjectId(data['data']['_id'])})
 
     if not success:
         return {
