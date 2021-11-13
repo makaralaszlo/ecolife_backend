@@ -80,7 +80,7 @@ def login_user() -> str:
             'data': {
                 'description': 'Email address or Password not provided correctly!'
             }
-        }), 400
+        })
 
     profiles = low_level_profile_api.get_profile(req_data)
     users += profiles
@@ -91,21 +91,21 @@ def login_user() -> str:
             'data': {
                 'description': profiles
             }
-        }), 400
+        })
     elif len(profiles) > 1:
         return json.dumps({
             'type': 'Error',
             'data': {
                 'description': 'Internal server error! Multiple profiles with same e-mail assigned!'
             }
-        }), 400
+        })
     elif len(profiles) == 0:
         return json.dumps({
             'type': 'Error',
             'data': {
                 'description': 'No profile assigned to these values!'
             }
-        }), 400
+        })
 
     profile_bearer_token = ''
     for profile_id, bearer_token in zip(logged_in_users.values(), logged_in_users.keys()):
@@ -121,7 +121,7 @@ def login_user() -> str:
         'data': {
             'description': profile_bearer_token
         }
-    }), 200
+    })
 
 
 @high_api.route(f'{BASE_URI}/logout', methods=['POST'])
@@ -289,17 +289,6 @@ def get_user_task_screen():
     })
 
 
-@high_api.route(f'{BASE_URI}/admin_task_screen', methods=['GET'])
-def get_admin_task_screen():
-    # ha admin akkor az admin task screen
-    # ha user akkor a user main screent
-    pass
-
-
-def get_mobile_rewards_screen():
-    pass
-
-
 @high_api.route(f'{BASE_URI}/user_profile_screen', methods=['GET'])
 def get_mobile_profile_screen() -> str:
     # össze kell szedni a profild adatokat, kuponokat abből a kupon title és description
@@ -339,6 +328,7 @@ def get_mobile_profile_screen() -> str:
         })
 
         coupons.append({
+            '_id': str(reward_resp['data']['description'][0]['_id']),
             'title': reward_resp['data']['description'][0]['title'],
             'description': reward_resp['data']['description'][0]['description'],
             'company': reward_resp['data']['description'][0]['company'],
@@ -350,19 +340,12 @@ def get_mobile_profile_screen() -> str:
         'type': 'Success',
         'data':
             {
-                'profile': profile_object,
-                'coupons': coupons
+                'description': {
+                    'profile': profile_object,
+                    'coupons': coupons
+                }
             }
     })
-
-
-def get_mobile_task_screen():
-    # ez csak 1 darab task teljes nézeete
-    pass
-
-
-def get_admin_main_screen():
-    pass
 
 
 @high_api.route(f'{BASE_URI}/create_task', methods=['POST'])
@@ -471,12 +454,68 @@ def create_reward():
 
 
 @high_api.route(f'{BASE_URI}/get_reward', methods=['GET'])
-def get_reward():
-    req = request.json
+def get_reward() -> str:
+    """
+    Payload kinézete:
+    {
+        'type': 'Reward',
+        'data': {
+            '_id': 'idvalue'
+        }
+    }
 
-    resp, success = low_level_reward_api.get_reward(req)
+    :return:
+    """
+    req_data = request.json
 
-    return json.dumps(resp)
+    try:
+        token = request.headers['Authorization'].split(' ')[-1]
+    except Exception as exp:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': str(exp)
+            }
+        })
+
+    if '_id' not in req_data['data']:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'ID should be provided!'
+            }
+        })
+
+    resp = check_profile_login(token)
+
+    if type(resp) == str:
+        return json.dumps(resp)
+    else:
+        profile, success = resp
+
+    reward_resp, reward_success = low_level_reward_api.get_reward(req_data)
+
+    if not reward_success:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': reward_resp
+            }
+        })
+
+    return json.dumps({
+        'type': 'Success',
+        'data': {
+            'description': {
+                '_id': str(reward_resp['data']['description'][0]['_id']),
+                'title': reward_resp['data']['description'][0]['title'],
+                'description': reward_resp['data']['description'][0]['description'],
+                'company': reward_resp['data']['description'][0]['company'],
+                'redeem_code': reward_resp['data']['description'][0]['redeem_code'],
+                'expiration': reward_resp['data']['description'][0]['expiration']
+            }
+        }
+    })
 
 
 @high_api.route(f'{BASE_URI}/delete_reward', methods=['POST'])
@@ -509,3 +548,23 @@ def delete_reward():
     resp, success = low_level_reward_api.delete_reward(req)
 
     return json.dumps(resp)
+
+
+def get_mobile_task_screen():
+    # ez csak 1 darab task teljes nézeete
+    pass
+
+
+def get_admin_main_screen():
+    pass
+
+
+@high_api.route(f'{BASE_URI}/admin_task_screen', methods=['GET'])
+def get_admin_task_screen():
+    # ha admin akkor az admin task screen
+    # ha user akkor a user main screent
+    pass
+
+
+def get_mobile_rewards_screen():
+    pass

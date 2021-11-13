@@ -22,7 +22,8 @@ tags:
   description: "Reward-okhoz tartozó funkcionalitások."
 - name: "Submit"
   description: "Submit-ekhez tartozó funkcionalitások."
-
+- name: "Mobile dedicated"
+  description: "A mobil nézethez tartozó business journeyknek megfelelő adatösszegyűtő high level API hívások."
 
 schemes:
 - "https"
@@ -286,6 +287,8 @@ paths:
               
   /user_task_screen:
     get:
+      tags:
+      - "Mobile dedicated"
       summary: "A mobil készülékhez szükséges főképernyői adatokat összegyüjtő API endpoint."
       description: "Ezt csakis kizárólag a UserProfile-lal rendelkező felhasználók tudják lekérdezni, akik be vannak jelentkezve, vagyis a Bearer tokennel rendelkeznek az Authorizációs headerben."
       operationId: "getMobileTaskScreen"
@@ -383,6 +386,8 @@ paths:
                               example: "company1"
   /user_profile_screen:
      get:
+      tags:
+      - "Mobile dedicated"
       summary: "A mobil készülékhez szükséges felhasználó profillal és kuponokkal kapcsolatos adatokat összegyüjtő API endpoint."
       description: "Ezt csakis kizárólag a UserProfile-lal rendelkező felhasználók tudják lekérdezni, akik be vannak jelentkezve, vagyis a Bearer tokennel rendelkeznek az Authorizációs headerben."
       operationId: "getUserProfileTaskScreen"
@@ -431,45 +436,120 @@ paths:
               data:
                 type: "object"
                 properties:
-                  profile:
+                  description:
+                    type: "object"
+                    properties:
+                      profile:
+                        type: "object"
+                        properties:
+                          _id:
+                            type: "string"
+                          email_address:
+                            type: "string"
+                          first_name:
+                            type: "string"
+                          last_name:
+                            type: "string"
+                          date_of_birth:
+                            type: "string"
+                          password:
+                            type: "string"
+                          rewards:
+                            type: "array"
+                            items:
+                              type: "string"
+                          tasks:
+                            type: "array"
+                            items:
+                              type: "string"
+                      coupons:
+                        type: "array"
+                        items:
+                          type: "object"
+                          properties:
+                            _id:
+                              type: "string"
+                            title:
+                              type: "string"
+                            description:
+                              type: "string"
+                            company:
+                              type: "string"
+                            redeem_code:
+                              type: "string"
+                            expiration:
+                              type: "string"
+                        
+  /get_reward:
+    get:
+      tags:
+      - Reward
+      summary: "Egy dedikált rewardot lehet az API segítségével lekérdezni."
+      description: "Előfeltétel a bejelentkezett Admin vagy User, illetve a paylaod-ban átadott _id a vonatkozó rewardra."
+      operationId: "getReward"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "Reward"
+        description: "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe."
+        schema:
+          type: "object"
+          properties:
+            type:
+              type: "string"
+              example: "Reward"
+            data:
+              type: "object"
+              properties:
+                _id:
+                  type: "string"
+      responses:
+        "400":
+          description: "Error"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Error"
+              data:
+                type: "object"
+                properties:
+                  description:
+                    type: "string"
+                    example:
+                      "Only Users can access these type of content!"
+        "200":
+          description: "Success"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Success"
+              data:
+                type: "object"
+                properties:
+                  description:
                     type: "object"
                     properties:
                       _id:
                         type: "string"
-                      email_address:
+                      title:
                         type: "string"
-                      first_name:
+                      description:
                         type: "string"
-                      last_name:
+                      company:
                         type: "string"
-                      date_of_birth:
+                      redeem_code:
                         type: "string"
-                      password:
+                      expiration:
                         type: "string"
-                      rewards:
-                        type: "array"
-                        items:
-                          type: "string"
-                      tasks:
-                        type: "array"
-                        items:
-                          type: "string"
-                  coupons:
-                    type: "array"
-                    items:
-                      type: "object"
-                      properties:
-                        title:
-                          type: "string"
-                        description:
-                          type: "string"
-                        company:
-                          type: "string"
-                        redeem_code:
-                          type: "string"
-                        expiration:
-                          type: "string"
-                      
                       
           
           
