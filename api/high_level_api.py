@@ -254,25 +254,25 @@ def get_user_task_screen():
         })
 
         if submit_success and task_success:
-            if submit_resp['data']['description']['state'] is 'AVAILABLE':
+            if str(submit_resp['data']['description'][0]['state']) == 'AVAILABLE':
                 available_tasks.append({
-                    'title': task_resp['data']['description']['title'],
-                    'company': task_resp['data']['description']['company']
+                    'title': task_resp['data']['description'][0]['title'],
+                    'company': task_resp['data']['description'][0]['company']
                 })
-            elif submit_resp['data']['description']['state'] is 'ACCEPTED':
+            elif str(submit_resp['data']['description'][0]['state']) == 'ACCEPTED':
                 accepted_tasks.append({
-                    'title': task_resp['data']['description']['title'],
-                    'company': task_resp['data']['description']['company']
+                    'title': task_resp['data']['description'][0]['title'],
+                    'company': task_resp['data']['description'][0]['company']
                 })
-            elif submit_resp['data']['description']['state'] is 'REJECTED':
+            elif str(submit_resp['data']['description'][0]['state']) == 'REJECTED':
                 rejected_tasks.append({
-                    'title': task_resp['data']['description']['title'],
-                    'company': task_resp['data']['description']['company']
+                    'title': task_resp['data']['description'][0]['title'],
+                    'company': task_resp['data']['description'][0]['company']
                 })
-            elif submit_resp['data']['description']['state'] is 'PENDING':
+            elif str(submit_resp['data']['description'][0]['state']) == 'PENDING':
                 pending_tasks.append({
-                    'title': task_resp['data']['description']['title'],
-                    'company': task_resp['data']['description']['company']
+                    'title': task_resp['data']['description'][0]['title'],
+                    'company': task_resp['data']['description'][0]['company']
                 })
 
     return json.dumps({

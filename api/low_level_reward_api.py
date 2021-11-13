@@ -104,3 +104,18 @@ def delete_reward(data: dict) -> typing.Tuple[dict, bool]:
                        'description': db_resp
                    }
                }, True
+
+
+
+#if __name__ == '__main__':
+#    answ = create_reward({
+#        'type': 'reward',
+#        'data': {
+#            'title': 'teszt3',
+#            'description': 'ez egy test reward',
+#            'company': 'teszt.hu',
+#            'redeem_code': '12345678',
+#            'expiration': 'never'
+#        }
+#    })
+#    print(answ)

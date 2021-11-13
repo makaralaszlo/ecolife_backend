@@ -1,0 +1,509 @@
+swagger: "2.0"
+info:
+  description: "EcoLife backend-hez tartozó API leírások. A backend a BME-VIAUMA06 tárgy keretén belül készült el. Kontributorok: Varsányi Botond (AJ0PTT) (varsanyi.botond98@gmail.com), Makara László Árpád (G5YPX8) (makara.laszlo.arpad@gmail.com)"
+  version: "1.0.0"
+  title: "Swagger EcoLife"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "makara.laszlo.arpad@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "app-ecolifebackend-dev-001.azurewebsites.net"
+basePath: "/api/v1"
+
+
+tags:
+- name: "Profile"
+  description: "Felhasználói és adminisztrátor profilokhoz tartozó funkcionalitások."
+- name: "Task"
+  description: "Task-okhoz tartozó funkcionalitások."
+- name: "Reward"
+  description: "Reward-okhoz tartozó funkcionalitások."
+- name: "Submit"
+  description: "Submit-ekhez tartozó funkcionalitások."
+
+
+schemes:
+- "https"
+paths:
+  /create_profile:
+    post:
+      tags:
+      - "Profile"
+      summary: "Új profil létrehozása."
+      description: ""
+      operationId: "createProfile"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "UserProfile"
+        description: "A hozzá adandó felhasználó adatai és információ."
+        schema:
+          type: "object"
+          properties:
+            type:
+              type: "string"
+              example: "UserProfile"
+            data:
+              type: "object"
+              properties:
+                email_address:
+                  type: "string"
+                first_name:
+                  type: "string"
+                last_name:
+                  type: "string"
+                date_of_birth:
+                  type: "string"
+                password:
+                  type: "string"
+                rewards:
+                  type: "array"
+                  items:
+                    type: "string"
+                  example: []
+                tasks:
+                  type: "array"
+                  items:
+                    type: "string"
+                  example: []
+      - in: "body"
+        name: "AdminProfile"
+        description: "A hozzá adandó felhasználó adatai és információ."
+        schema:
+          type: "object"
+          properties:
+            type:
+              type: "string"
+              example: "AdminProfile"
+            data:
+              type: "object"
+              properties:
+                email_address:
+                  type: "string"
+                first_name:
+                  type: "string"
+                last_name:
+                  type: "string"
+                date_of_birth:
+                  type: "string"
+                password:
+                  type: "string"
+                company:
+                  type: "string"
+                rewards:
+                  type: "array"
+                  items:
+                    type: "string"
+                  example: []
+                tasks:
+                  type: "array"
+                  items:
+                    type: "string"
+                  example: []
+      responses:
+        "400":
+          description: "Error"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Error"
+              data:
+                type: "object"
+                properties:
+                  description:
+                    type: "string"
+                    example:
+                      "Incorrect type passed."
+        "200":
+          description: "Success"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Success"
+              data:
+                type: "object"
+                properties:
+                  description:
+                    type: "string"
+                    example:
+                      "Database response."
+  
+  /login:
+    post:
+      tags:
+      - "Profile"
+      summary: "Profilba való belépés."
+      description: ""
+      operationId: "loginProfile"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "Profile"
+        description: "Felhasználó e-mail címe és jelszava."
+        schema:
+          type: "object"
+          properties:
+            type:
+              type: "string"
+              example: "UserProfile"
+            data:
+              type: "object"
+              properties:
+                email_address:
+                  type: "string"
+                password:
+                  type: "string"
+      - in: "body"
+        name: "AdminProfile"
+        description: "A hozzá adandó felhasználó adatai és információ."
+        schema:
+          type: "object"
+          properties:
+            type:
+              type: "string"
+              example: "AdminProfile"
+            data:
+              type: "object"
+              properties:
+                email_address:
+                  type: "string"
+                password:
+                  type: "string"
+      responses:
+        "400":
+          description: "Error"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Error"
+              data:
+                type: "object"
+                properties:
+                  description:
+                    type: "string"
+                    example:
+                      "No profile assigned to these values!"
+        "200":
+          description: "Success"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Success"
+              data:
+                type: "object"
+                properties:
+                  description:
+                    type: "string"
+                    example:
+                      "Bearer token."
+  /logout:
+    post:
+      tags:
+      - "Profile"
+      summary: "Profilból való kilépés."
+      description: ""
+      operationId: "logoutProfile"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "Profile"
+        description: "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe."
+        schema:
+          type: "object"
+          properties:
+            type:
+              type: "string"
+              example: "UserProfile"
+            data:
+              type: "object"
+      - in: "body"
+        name: "AdminProfile"
+        description: "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe."
+        schema:
+          type: "object"
+          properties:
+            type:
+              type: "string"
+              example: "AdminProfile"
+            data:
+              type: "object"
+      responses:
+        "400":
+          description: "Error"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Error"
+              data:
+                type: "object"
+                properties:
+                  description:
+                    type: "string"
+                    example:
+                      "User was not logged in!"
+        "200":
+          description: "Success"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Success"
+              data:
+                type: "object"
+                properties:
+                  description:
+                    type: "string"
+                    example:
+                      "User logged out!" 
+              
+  /user_task_screen:
+    get:
+      summary: "A mobil készülékhez szükséges főképernyői adatokat összegyüjtő API endpoint."
+      description: "Ezt csakis kizárólag a UserProfile-lal rendelkező felhasználók tudják lekérdezni, akik be vannak jelentkezve, vagyis a Bearer tokennel rendelkeznek az Authorizációs headerben."
+      operationId: "getMobileTaskScreen"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "Profile"
+        description: "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe."
+        schema:
+          type: "object"
+          properties:
+            type:
+              type: "string"
+              example: "UserProfile"
+            data:
+              type: "object"
+      responses:
+        "400":
+          description: "Error"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Error"
+              data:
+                type: "object"
+                properties:
+                  description:
+                    type: "string"
+                    example:
+                      "Only Users can access these type of content!"
+        "200":
+          description: "Success"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Success"
+              data:
+                type: "object"
+                properties:
+                  description:
+                    type: "object"
+                    properties:
+                      AVAILABLE:
+                        type: "array"
+                        items:
+                          type: "object"
+                          properties:
+                            title:
+                              type: "string"
+                              example: "title1"
+                            company:
+                              type: "string"
+                              example: "company1"
+                      PENDING:
+                        type: "array"
+                        items:
+                          type: "object"
+                          properties:
+                            title:
+                              type: "string"
+                              example: "title1"
+                            company:
+                              type: "string"
+                              example: "company1"
+                      ACCEPTED:
+                        type: "array"
+                        items:
+                          type: "object"
+                          properties:
+                            title:
+                              type: "string"
+                              example: "title1"
+                            company:
+                              type: "string"
+                              example: "company1"
+                      REJECTED:
+                        type: "array"
+                        items:
+                          type: "object"
+                          properties:
+                            title:
+                              type: "string"
+                              example: "title1"
+                            company:
+                              type: "string"
+                              example: "company1"
+          
+          
+          
+          
+          
+securityDefinitions:
+  user_login:
+    type: "basic"
+  bearer_token:
+    type: "apiKey"
+    name: "Bearer Token"
+    in: "header"
+    
+definitions:
+  UserProfile:
+    type: "object"
+    properties:
+      _id:
+        type: "string"
+      email_address:
+        type: "string"
+      first_name:
+        type: "string"
+      last_name:
+        type: "string"
+      date_of_birth:
+        type: "string"
+      password:
+        type: "string"
+      rewards:
+        type: "array"
+        items:
+          type: "string"
+      tasks:
+        type: "array"
+        items:
+          type: "string"
+    xml:
+      name: "UserProfile"
+      
+  AdminProfile:
+    type: "object"
+    properties:
+      _id:
+        type: "string"
+      email_address:
+        type: "string"
+      first_name:
+        type: "string"
+      last_name:
+        type: "string"
+      date_of_birth:
+        type: "string"
+      password:
+        type: "string"
+      company:
+        type: "string"
+      rewards:
+        type: "array"
+        items:
+          type: "string"
+      tasks:
+        type: "array"
+        items:
+          type: "string"
+    xml:
+      name: "AdminProfile"
+    
+  Task:
+    type: "object"
+    properties:
+      _id:
+        type: "string"
+      company:
+        type: "string"
+      reward:
+        type: "string"
+      max_submission_number:
+        type: "integer"
+      immediately_evaluated:
+        type: "boolean"
+        default: false
+      title:
+        type: "string"
+      description:
+        type: "string"
+      expiration:
+        type: "string"
+      submits:
+        type: "array"
+        items:
+          type: "string"
+  
+  Reward:
+    type: "object"
+    properties:
+      _id:
+        type: "string"
+      title:
+        type: "string"
+      description:
+        type: "string"
+      company:
+        type: "string"
+      redeem_code:
+        type: "string"
+        default: "none"
+      expiration:
+        type: "string"
+        
+  Submit:
+    type: "object"
+    properties:
+      user_id:
+        type: "string"
+      task_id:
+        type: "string"
+      image:
+        type: "string"
+      state:
+        type: "string"
+        enum:
+        - "AVAILABLE"
+        - "ACCEPTED"
+        - "REJECTED"
+        - "PENDING"

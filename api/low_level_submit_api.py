@@ -94,3 +94,16 @@ def delete_submit(data: dict) -> typing.Tuple[dict, bool]:
 def update_submit():
     # ezzel kell a módot változtatni egy submit esetében a state fieldet
     pass
+
+#if __name__ == '__main__':
+#    answ = create_submit({
+#        'type': 'submit',
+#        'data': {
+#            'user_id': '6174151b9f309ed114103941',
+#            'task_id': '618facc3508521f006b7d65d',
+#            'state': 'AVAILABLE',
+#            'image': None
+#        }
+#    })
+#
+#    print(answ)

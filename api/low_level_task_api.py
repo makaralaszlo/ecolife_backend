@@ -2,6 +2,7 @@ import typing
 from flask import Blueprint
 from objects.task import Task
 from database.database import DataBase
+from bson.objectid import ObjectId
 
 task_db = DataBase('EcoLife', 'tasks')
 
@@ -65,7 +66,7 @@ def get_task(data: dict) -> typing.Tuple[dict, bool]:
                    }
                }, False
 
-    db_resp, success = task_db.get_element(data['data']['_id'])
+    db_resp, success = task_db.get_element({'_id': ObjectId(data['data']['_id'])})
 
     if not success:
         return {
@@ -108,3 +109,21 @@ def delete_task(data: dict) -> typing.Tuple[dict, bool]:
                        'description': db_resp
                    }
                }, True
+
+
+#if __name__ == '__main__':
+#    answ = create_task({
+#        'type': 'task',
+#        'data': {
+#            'title': 'teszt4',
+#            'description': 'ez egy test reward',
+#            'company': 'teszt.hu',
+#            'redeem_code': '12345678',
+#            'expiration': 'never',
+#            'reward': '618fabd6e8249d95d780e5c2',
+#            'immediately_evaluated': False,
+#            'max_submission_number': 2,
+#            'submits': []
+#        }
+#    })
+#    print(answ)
