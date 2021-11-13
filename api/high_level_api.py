@@ -380,13 +380,111 @@ def create_task() -> str:
     return json.dumps(resp)
 
 
-@high_api.route(f'{BASE_URI}/get_task', methods=['GET'])
-def get_task() -> str:
-    req = request.json
+@high_api.route(f'{BASE_URI}/user_task_details_screen', methods=['GET'])
+def user_get_task() -> str:
+    """
+        Payload kinézete:
+        {
+            'type': 'Reward',
+            'data': {
+                '_id': 'idvalue'
+            }
+        }
 
-    resp, success = low_level_task_api.get_task(req)
+        :return:
+    """
+    req_data = request.json
 
-    return json.dumps(resp)
+    try:
+        token = request.headers['Authorization'].split(' ')[-1]
+    except Exception as exp:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': str(exp)
+            }
+        })
+
+    resp = check_profile_login(token)
+    if type(resp) == str:
+        return json.dumps(resp)
+    else:
+        profile, success = resp
+
+    if type(profile) != UserProfile:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'Only Users can access these type of content!'
+            }
+        })
+
+    if '_id' not in req_data['data']:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'ID should be provided!'
+            }
+        })
+
+    profile, success = get_profile_object(logged_in_users[token])
+
+    if not success:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': profile
+            }
+        })
+
+    task_resp, task_success = low_level_task_api.get_task(req_data)
+
+    if not task_success:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': task_resp
+            }
+        })
+
+    submit_resp, submit_success = low_level_submit_api.get_submit({
+        'type': 'Submit',
+        'data': {
+            'user_id': profile.get_id(),
+            'task_id': req_data['data']['_id']
+        }
+    })
+
+    if not submit_success:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': submit_resp
+            }
+        })
+
+    return json.dumps({
+        'type': 'Success',
+        'data': {
+            'description': {
+                'task': {
+                    '_id': str(task_resp['data']['description'][0]['_id']),
+                    'company': task_resp['data']['description'][0]['company'],
+                    'reward': task_resp['data']['description'][0]['reward'],
+                    'max_submission_number': task_resp['data']['description'][0]['max_submission_number'],
+                    'immediately_evaluated': task_resp['data']['description'][0]['immediately_evaluated'],
+                    'title': task_resp['data']['description'][0]['title'],
+                    'description': task_resp['data']['description'][0]['description'],
+                    'expiration': task_resp['data']['description'][0]['expiration']
+                },
+                'solution': {
+                    'user_id': submit_resp['data']['description'][0]['user_id'],
+                    'task_id': submit_resp['data']['description'][0]['task_id'],
+                    'image': submit_resp['data']['description'][0]['image'],
+                    'state': submit_resp['data']['description'][0]['state']
+                }
+            }
+        }})
 
 
 @high_api.route(f'{BASE_URI}/delete_task', methods=['POST'])
