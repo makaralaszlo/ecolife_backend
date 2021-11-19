@@ -24,6 +24,9 @@ class UserProfile(BasicProfile):
         self.__rewards = rewards
         self.__tasks = tasks
 
+    def set_tasks(self, new_tasks: list):
+        self.__tasks = new_tasks
+
     def to_dict(self) -> dict:
         """
         Vissza adja a AdminProfile objektumot dict formátumban. Adatbázisba iratás során igy kell kiiratni

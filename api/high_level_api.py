@@ -1,4 +1,5 @@
 from flask import Blueprint, request
+from bson.objectid import ObjectId
 from config.api_config import BASE_URI
 import api.low_level_profile_api as low_level_profile_api
 import api.low_level_task_api as low_level_task_api
@@ -17,10 +18,26 @@ users = []
 
 def get_profile_object(user_id: str) -> typing.Tuple[typing.Union[AdminProfile, UserProfile, str], bool]:
     global users
+
     for user in users:
         if user.get_id() == user_id:
             return user, True
     return 'Profile not loaded in correctly!', False
+
+
+def refresh_profile(profile_type: str, user_id: str):
+    global users
+
+    refreshed_user = low_level_profile_api.get_profile({
+        'type': profile_type,
+        'data': {
+            '_id': ObjectId(user_id)
+        }
+    })
+
+    for user in users:
+        if user.get_id() == user_id:
+            user = refreshed_user
 
 
 def check_profile_login(token) -> typing.Union[dict, typing.Tuple[UserProfile, bool]]:
@@ -43,6 +60,11 @@ def check_profile_login(token) -> typing.Union[dict, typing.Tuple[UserProfile, b
                 'description': profile
             }
         }
+
+    if type(profile) == UserProfile:
+        refresh_profile('UserProfile', profile.get_id())
+    elif type(profile) == AdminProfile:
+        refresh_profile('AdminProfile', profile.get_id())
 
     return profile, success
 
@@ -231,13 +253,46 @@ def get_user_task_screen():
             }
         })
 
+    old_task_list = profile.to_dict()['tasks']
+    new_task_list = old_task_list.copy()
+    # hozzá kell adni az elérhető vagy elfogadott vagy elutasitott taskokat a profilhoz
+
+    all_task_list, all_task_success = low_level_task_api.get_all_task()
+    if all_task_success:
+        for task in all_task_list['data']['description']:
+            if str(task['_id']) not in old_task_list:
+                low_level_submit_api.create_submit({
+                    'type': 'submit',
+                    'data': {
+                        'user_id': profile.get_id(),
+                        'task_id': str(task['_id']),
+                        'image': None,
+                        'state': 'AVAILABLE'}
+                })
+
+                new_task_list.append(str(task['_id']))
+
+        if new_task_list != old_task_list:
+            low_level_profile_api.update_profile({
+                'type': 'UserProfile',
+                'data': {
+                    'search': {
+                        '_id': ObjectId(profile.get_id())
+                    },
+                    'update': {
+                        'tasks': new_task_list
+                    }
+                }
+            })
+
+    task_list = new_task_list
+    profile.set_tasks(task_list)
+
     # taskokat kell visszadni ami csak a rövid név, valami available, accepted, declined
     available_tasks = []
     accepted_tasks = []
     rejected_tasks = []
     pending_tasks = []
-
-    task_list = profile.to_dict()['tasks']
 
     for task in task_list:
         submit_resp, submit_success = low_level_submit_api.get_submit({

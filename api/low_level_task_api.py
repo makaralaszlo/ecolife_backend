@@ -111,19 +111,38 @@ def delete_task(data: dict) -> typing.Tuple[dict, bool]:
                }, True
 
 
-#if __name__ == '__main__':
-#    answ = create_task({
-#        'type': 'task',
-#        'data': {
-#            'title': 'teszt4',
-#            'description': 'ez egy test reward',
-#            'company': 'teszt.hu',
-#            'redeem_code': '12345678',
-#            'expiration': 'never',
-#            'reward': '618fabd6e8249d95d780e5c2',
-#            'immediately_evaluated': False,
-#            'max_submission_number': 2,
-#            'submits': []
-#        }
-#    })
-#    print(answ)
+def get_all_task() -> typing.Tuple[dict, bool]:
+    db_resp, success = task_db.get_element({})
+
+    if not success:
+        return {
+                   'type': 'Error',
+                   'data': {
+                       'description': db_resp
+                   }
+               }, False
+    else:
+        return {
+                   'type': 'Success',
+                   'data': {
+                       'description': db_resp
+                   }
+               }, True
+
+
+if __name__ == '__main__':
+    answ = create_task({
+        'type': 'task',
+        'data': {
+            'title': 'teszt10',
+            'description': 'ez egy test reward',
+            'company': 'teszt.hu',
+            'redeem_code': '12345678',
+            'expiration': 'never',
+            'reward': '618fabd6e8249d95d780e5c2',
+            'immediately_evaluated': False,
+            'max_submission_number': 2,
+            'submits': []
+        }
+    })
+    print(answ)
