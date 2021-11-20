@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from bson.objectid import ObjectId
 from config.api_config import BASE_URI
+import api.low_level_api as low_level_api
 import api.low_level_profile_api as low_level_profile_api
 import api.low_level_task_api as low_level_task_api
 import api.low_level_reward_api as low_level_reward_api
@@ -535,7 +536,7 @@ def user_get_task() -> str:
                 'solution': {
                     'user_id': submit_resp['data']['description'][0]['user_id'],
                     'task_id': submit_resp['data']['description'][0]['task_id'],
-                    'image': submit_resp['data']['description'][0]['image'],
+                    'image': str(submit_resp['data']['description'][0]['image']),
                     'state': submit_resp['data']['description'][0]['state']
                 }
             }
@@ -721,3 +722,68 @@ def get_admin_task_screen():
 
 def get_mobile_rewards_screen():
     pass
+
+
+@high_api.route(f'{BASE_URI}/upload_image', methods=['POST'])
+def upload_image() -> str:
+    # TODO itt kell átadni majd hogy QR vagy nem ? vagyis le kell kérdezni hogy a task qr ha qr akkor decode és kiértéleni
+
+    req_data = request.form
+
+    try:
+        token = request.headers['Authorization'].split(' ')[-1]
+    except Exception as exp:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': str(exp)
+            }
+        })
+
+    resp = check_profile_login(token)
+    if type(resp) == str:
+        return json.dumps(resp)
+    else:
+        profile, success = resp
+
+    if type(profile) != UserProfile:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'Only Users can access these type of content!'
+            }
+        })
+
+    if 'user_id' not in req_data or 'task_id' not in req_data:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'The user_id and task_id should be provided!'
+            }
+        })
+
+    if 'image' not in request.files:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'Image is not attached to the request!'
+            }
+        })
+
+    image = request.files['image']
+    upload_res, upload_success = low_level_api.upload_image_to_submit(req_data, image)
+
+    if not upload_success:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': upload_res
+            }
+        })
+
+    return json.dumps({
+        'type': 'Success',
+        'data': {
+            'description': upload_res
+        }
+    })
