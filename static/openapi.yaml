@@ -653,7 +653,7 @@ paths:
       description: "Minden adatot a form-datában kell felküldeni, majd az a adatábzisban base64-ként tárolásra kerül a kép, melyet a rendszer base64ként fog visszadni."
       operationId: "uploadImage"
       consumes:
-      - "multipart/form-data"
+      - "application/json"
       produces:
       - "application/json"
       parameters:
@@ -663,12 +663,25 @@ paths:
         schema:
           type: "object"
           properties:
-            image:
+            type:
               type: "string"
-            user_id:
-              tpye: "string"
-            task_id:
-              type: "string"
+              example: "ImageUpload"
+            data:
+              type: "object"
+              properties:
+                user_id:
+                  type: "string"
+                task_id:
+                  type: "string"
+                image:
+                  type: "string"
+                  example: "base64 encoded image string"
+                type:
+                  type: "string"
+                  example: "'image' for image, 'qr' for qr"
+                  enum:
+                  - "image"
+                  - "qr"
       responses:
         "400":
           description: "Error"

@@ -726,9 +726,7 @@ def get_mobile_rewards_screen():
 
 @high_api.route(f'{BASE_URI}/upload_image', methods=['POST'])
 def upload_image() -> str:
-    # TODO itt kell átadni majd hogy QR vagy nem ? vagyis le kell kérdezni hogy a task qr ha qr akkor decode és kiértéleni
-
-    req_data = request.form
+    req_data = request.json
 
     try:
         token = request.headers['Authorization'].split(' ')[-1]
@@ -754,7 +752,7 @@ def upload_image() -> str:
             }
         })
 
-    if 'user_id' not in req_data or 'task_id' not in req_data:
+    if 'user_id' not in req_data['data'] or 'task_id' not in req_data['data']:
         return json.dumps({
             'type': 'Error',
             'data': {
@@ -762,7 +760,7 @@ def upload_image() -> str:
             }
         })
 
-    if 'image' not in request.files:
+    if 'image' not in req_data['data']:
         return json.dumps({
             'type': 'Error',
             'data': {
@@ -770,7 +768,7 @@ def upload_image() -> str:
             }
         })
 
-    image = request.files['image']
+    image = req_data['data']['image']
     upload_res, upload_success = low_level_api.upload_image_to_submit(req_data, image)
 
     if not upload_success:
