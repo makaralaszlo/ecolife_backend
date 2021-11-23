@@ -35,6 +35,10 @@
     {
       "name": "Mobile dedicated",
       "description": "A mobil nézethez tartozó business journeyknek megfelelő adatösszegyűtő high level API hívások."
+    },
+    {
+      "name": "Admin frontend dedicated",
+      "description": "Az admmin frontendhez tartozó endpointok, melyek az egyes high level API hívásokért felelősek."
     }
   ],
   "schemes": [
@@ -1025,6 +1029,119 @@
                     "description": {
                       "type": "string",
                       "example": "Only Users can access these type of content!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin_task_screen": {
+      "get": {
+        "tags": [
+          "Admin frontend dedicated"
+        ],
+        "summary": "Az AdminProfile-lal rendelkező felhasználó letudja kérdezni a saját task listáját.",
+        "description": "Az endpoint vissza adja az összes taskot a teljes információ listával velük kapcsolatban.",
+        "operationId": "getAdminTaskScreen",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "AdminProfile",
+            "description": "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Tasks"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string"
+                          },
+                          "company": {
+                            "type": "string"
+                          },
+                          "reward": {
+                            "type": "string"
+                          },
+                          "max_submission_number": {
+                            "type": "string"
+                          },
+                          "immediately_evaluated": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "expiration": {
+                            "type": "string"
+                          },
+                          "submits": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Error"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Only Admins can access these type of content!"
                     }
                   }
                 }

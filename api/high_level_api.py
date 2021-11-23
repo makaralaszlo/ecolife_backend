@@ -37,6 +37,7 @@ def refresh_profile(profile_type: str, user_id: str):
     })
 
     for user in users:
+        print(user)
         if user.get_id() == user_id:
             user = refreshed_user
 
@@ -704,20 +705,57 @@ def delete_reward():
     return json.dumps(resp)
 
 
-def get_mobile_task_screen():
-    # ez csak 1 darab task teljes nézeete
-    pass
-
-
-def get_admin_main_screen():
-    pass
-
-
 @high_api.route(f'{BASE_URI}/admin_task_screen', methods=['GET'])
-def get_admin_task_screen():
+def get_admin_task_screen() -> str:
+    # TODO pending solutions is lehet le kellene legyen implementalva counter
     # ha admin akkor az admin task screen
     # ha user akkor a user main screent
-    pass
+    try:
+        token = request.headers['Authorization'].split(' ')[-1]
+    except Exception as exp:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': str(exp)
+            }
+        })
+
+    resp = check_profile_login(token)
+    if type(resp) == str:
+        return json.dumps(resp)
+    else:
+        profile, success = resp
+
+    if type(profile) != AdminProfile:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'Only Admins can access these type of content!'
+            }
+        })
+
+    all_task_list, all_task_success = low_level_task_api.get_all_task()
+    admin_own_tasks = profile.to_dict()['tasks']
+
+    if not all_task_success:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': all_task_list
+            }
+        })
+
+    tasks = []
+
+    for task in all_task_list['data']['description']:
+        if str(task['_id']) in admin_own_tasks:
+            task['_id'] = str(task['_id'])
+            tasks.append(task)
+
+    return json.dumps({
+        'type': 'Success',
+        'data': tasks
+    })
 
 
 def get_mobile_rewards_screen():
