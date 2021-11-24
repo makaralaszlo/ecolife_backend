@@ -95,6 +95,26 @@ def update_submit():
     # ezzel kell a módot változtatni egy submit esetében a state fieldet
     pass
 
+
+def get_all_submit() -> typing.Tuple[dict, bool]:
+    db_resp, success = submit_db.get_element({})
+
+    if not success:
+        return {
+                   'type': 'Error',
+                   'data': {
+                       'description': db_resp
+                   }
+               }, False
+    else:
+        return {
+                   'type': 'Success',
+                   'data': {
+                       'description': db_resp
+                   }
+               }, True
+
+
 #if __name__ == '__main__':
 #    answ = create_submit({
 #        'type': 'submit',

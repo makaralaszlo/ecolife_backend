@@ -22,7 +22,8 @@ def upload_image_to_submit(data: dict, image: typing.Any):
             'task_id': data['data']['task_id']
         },
         update_data={
-            'image': image
+            'image': image,
+            'state': 'PENDING'
         })
 
     return 'Image uploaded successfully!', True

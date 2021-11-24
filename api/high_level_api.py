@@ -706,6 +706,73 @@ def delete_reward():
     return json.dumps(resp)
 
 
+@high_api.route(f'{BASE_URI}/admin_get_task', methods=['GET'])
+def get_admin_new_task_screen() -> str:
+    req = request.json
+
+    try:
+        token = request.headers['Authorization'].split(' ')[-1]
+    except Exception as exp:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': str(exp)
+            }
+        })
+
+    resp = check_profile_login(token)
+    if type(resp) == str:
+        return json.dumps(resp)
+    else:
+        profile, success = resp
+
+    if type(profile) != AdminProfile:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'Only Admins can access these type of content!'
+            }
+        })
+
+    task_data, task_success = low_level_task_api.get_task(data=req)
+
+    if not task_success:
+        return json.dumps(task_data)
+
+    reward_data, reward_success = low_level_reward_api.get_reward(data={
+        'data': {
+            '_id': task_data['data']['description'][0]['reward']
+        }
+    })
+
+    if not reward_success:
+        return json.dumps(reward_data)
+
+    submits_data, submits_success = low_level_submit_api.get_all_submit()
+
+    if not submits_success:
+        return json.dumps(submits_data)
+
+    submits = []
+
+    for submit in submits_data['data']['description']:
+        if str(submit['task_id']) == req['data']['_id'] and submit['state'] == 'PENDING':
+            submit['_id'] = str(submit['_id'])
+            submits.append(submit)
+
+    task_data['data']['description'][0]['_id'] = str(task_data['data']['description'][0]['_id'])
+    reward_data['data']['description'][0]['_id'] = str(reward_data['data']['description'][0]['_id'])
+
+    return json.dumps({
+        'type': 'Success',
+        'data': {
+            'task': task_data['data']['description'][0],
+            'reward': reward_data['data']['description'][0],
+            'submit': submits
+        }
+    })
+
+
 @high_api.route(f'{BASE_URI}/admin_task_screen', methods=['GET'])
 def get_admin_task_screen() -> str:
     # TODO pending solutions is lehet le kellene legyen implementalva counter
@@ -757,10 +824,6 @@ def get_admin_task_screen() -> str:
         'type': 'Success',
         'data': tasks
     })
-
-
-def get_mobile_rewards_screen():
-    pass
 
 
 @high_api.route(f'{BASE_URI}/upload_image', methods=['POST'])
