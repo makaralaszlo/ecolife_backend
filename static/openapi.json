@@ -1317,6 +1317,97 @@
           }
         }
       }
+    },
+    "/update_image": {
+      "post": {
+        "tags": [
+          "Submit"
+        ],
+        "summary": "Admin profilall rendelkező felhasználó ezzel tud state változtatni az egyes beküldött képeknek.",
+        "description": "A payloadba definiálni kell hogy ACCEPTED vagy REJECTED az adott kép.",
+        "operationId": "updateImage",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Image",
+            "description": "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "ImageUpload"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "user_id": {
+                      "type": "string"
+                    },
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string",
+                      "example": "'ACCEPTED' vagy 'REJECTED'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Image updated successfully!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Error"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Only Admins can access these type of content!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "securityDefinitions": {

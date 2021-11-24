@@ -706,7 +706,54 @@ def delete_reward():
     return json.dumps(resp)
 
 
-@high_api.route(f'{BASE_URI}/admin_get_task', methods=['GET'])
+@high_api.route(f'{BASE_URI}/update_image', methods=['POST'])
+def update_image() -> str:
+    req = request.json
+
+    try:
+        token = request.headers['Authorization'].split(' ')[-1]
+    except Exception as exp:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': str(exp)
+            }
+        })
+
+    resp = check_profile_login(token)
+    if type(resp) == str:
+        return json.dumps(resp)
+    else:
+        profile, success = resp
+
+    if type(profile) != AdminProfile:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'Only Admins can access these type of content!'
+            }
+        })
+
+    upload_res, upload_success = low_level_submit_api.update_submit(req, req['data']['state'])
+
+    if not upload_success:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': upload_res
+            }
+        })
+
+    return json.dumps({
+        'type': 'Success',
+        'data': {
+            'description': upload_res
+        }
+    })
+
+
+
+@high_api.route(f'{BASE_URI}/admin_get_task', methods=['GET', 'POST'])
 def get_admin_new_task_screen() -> str:
     req = request.json
 
@@ -773,7 +820,7 @@ def get_admin_new_task_screen() -> str:
     })
 
 
-@high_api.route(f'{BASE_URI}/admin_task_screen', methods=['GET'])
+@high_api.route(f'{BASE_URI}/admin_task_screen', methods=['GET', 'POST'])
 def get_admin_task_screen() -> str:
     # TODO pending solutions is lehet le kellene legyen implementalva counter
     # ha admin akkor az admin task screen

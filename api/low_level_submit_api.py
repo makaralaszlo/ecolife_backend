@@ -91,9 +91,17 @@ def delete_submit(data: dict) -> typing.Tuple[dict, bool]:
                }, True
 
 
-def update_submit():
-    # ezzel kell a módot változtatni egy submit esetében a state fieldet
-    pass
+def update_submit(data: dict, state: str):
+    submit_db.update_element(
+        search_fields={
+            'user_id': data['data']['user_id'],
+            'task_id': data['data']['task_id']
+        },
+        update_data={
+            'state': state
+        })
+
+    return 'Image uploaded successfully!', True
 
 
 def get_all_submit() -> typing.Tuple[dict, bool]:

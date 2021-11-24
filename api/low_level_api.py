@@ -27,3 +27,4 @@ def upload_image_to_submit(data: dict, image: typing.Any):
         })
 
     return 'Image uploaded successfully!', True
+
