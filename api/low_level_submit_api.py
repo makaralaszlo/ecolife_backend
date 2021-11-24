@@ -101,7 +101,7 @@ def update_submit(data: dict, state: str):
             'state': state
         })
 
-    return 'Image uploaded successfully!', True
+    return 'Image updated successfully!', True
 
 
 def get_all_submit() -> typing.Tuple[dict, bool]:
