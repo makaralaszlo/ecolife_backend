@@ -411,7 +411,7 @@ def get_mobile_profile_screen() -> str:
         'data':
             {
                 'description': {
-                    'profile': profile_object,
+                    'profile': profile_object[0].to_dict(),
                     'coupons': coupons
                 }
             }
@@ -670,11 +670,16 @@ def get_reward() -> str:
                 'description': reward_resp
             }
         })
-    reward_list = profile.to_dict()['rewards']
-    print(req_data['data']['_id'] in reward_list)
-    print(reward_list)
+
+    reward_list = low_level_profile_api.get_profile({
+        'type': 'UserProfile',
+        'data':{
+            '_id': profile.get_id()
+        }})[0].to_dict()['rewards']
+
     if str(req_data['data']['_id']) in reward_list:
         reward_list.remove(str(req_data['data']['_id']))
+
     low_level_profile_api.update_profile({
         'type': 'UserProfile',
         'data': {
