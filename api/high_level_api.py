@@ -304,7 +304,6 @@ def get_user_task_screen():
                 'task_id': task
             }
         })
-
         task_resp, task_success = low_level_task_api.get_task({
             'data': {
                 '_id': task
@@ -317,13 +316,32 @@ def get_user_task_screen():
                 available_tasks.append(task_resp['data']['description'][0])
             elif str(submit_resp['data']['description'][0]['state']) == 'ACCEPTED':
                 task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
-                available_tasks.append(task_resp['data']['description'][0])
+                accepted_tasks.append(task_resp['data']['description'][0])
+
+                # TODO hozzá kell adni az id-t a rewadrdhoz
+
+                profile_rewards = profile.to_dict()['rewards']
+                if str(task_resp['data']['description'][0]['reward']) not in profile_rewards:
+                    profile_rewards.append(str(task_resp['data']['description'][0]['reward']))
+
+                    low_level_profile_api.update_profile({
+                        'type': 'UserProfile',
+                        'data': {
+                            'search': {
+                                '_id': ObjectId(profile.get_id())
+                            },
+                            'update': {
+                                'rewards': profile_rewards
+                            }
+                        }
+                    })
+
             elif str(submit_resp['data']['description'][0]['state']) == 'REJECTED':
                 task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
-                available_tasks.append(task_resp['data']['description'][0])
+                rejected_tasks.append(task_resp['data']['description'][0])
             elif str(submit_resp['data']['description'][0]['state']) == 'PENDING':
                 task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
-                available_tasks.append(task_resp['data']['description'][0])
+                pending_tasks.append(task_resp['data']['description'][0])
 
     return json.dumps({
         'type': 'Success',
@@ -601,7 +619,7 @@ def create_reward():
     return json.dumps(resp)
 
 
-@high_api.route(f'{BASE_URI}/get_reward', methods=['GET'])
+@high_api.route(f'{BASE_URI}/get_reward', methods=['GET', 'POST'])
 def get_reward() -> str:
     """
     Payload kinézete:
