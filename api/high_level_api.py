@@ -64,11 +64,12 @@ def check_profile_login(token) -> typing.Union[dict, typing.Tuple[UserProfile, b
             }
         }
 
+    '''
     if type(profile) == UserProfile:
         refresh_profile('UserProfile', profile.get_id())
     elif type(profile) == AdminProfile:
         refresh_profile('AdminProfile', profile.get_id())
-
+    '''
     return profile, success
 
 
@@ -384,11 +385,10 @@ def get_mobile_profile_screen() -> str:
             }
         })
 
-    profile_object = profile.to_dict()
-    coupon_array = low_level_profile_api.get_profile({'type': 'UserProfile', 'data': {'_id': profile.get_id()}})
+    profile_object = low_level_profile_api.get_profile({'type': 'UserProfile', 'data': {'_id': profile.get_id()}})
     coupons = []
 
-    coupon_list = coupon_array[0].to_dict()['rewards']
+    coupon_list = profile_object[0].to_dict()['rewards']
     for coupon in coupon_list:
         reward_resp, reward_success = low_level_reward_api.get_reward({
             'data': {
@@ -396,6 +396,7 @@ def get_mobile_profile_screen() -> str:
             }
         })
 
+        # TODO itt meg kell cisnálni hogy a reward_respből menejn közvetlen ki az adat ne igy!
         coupons.append({
             '_id': str(reward_resp['data']['description'][0]['_id']),
             'title': reward_resp['data']['description'][0]['title'],
@@ -672,8 +673,8 @@ def get_reward() -> str:
     reward_list = profile.to_dict()['rewards']
     print(req_data['data']['_id'] in reward_list)
     print(reward_list)
-    if req_data['data']['_id'] in reward_list:
-        reward_list.remove(req_data['data']['_id'])
+    if str(req_data['data']['_id']) in reward_list:
+        reward_list.remove(str(req_data['data']['_id']))
     low_level_profile_api.update_profile({
         'type': 'UserProfile',
         'data': {
@@ -685,7 +686,7 @@ def get_reward() -> str:
             }
         }
     })
-    #reward_resp, reward_success = low_level_reward_api.delete_reward({'data': {'_id': req_data['data']['_id']}})
+    # reward_resp, reward_success = low_level_reward_api.delete_reward({'data': {'_id': req_data['data']['_id']}})
 
     return json.dumps({
         'type': 'Success',
@@ -1000,28 +1001,32 @@ def get_admin_task_screen() -> str:
         })
 
     tasks = []
+    # TODO ezt is a DB-ből kellene lekérni!
+    task_list = profile.to_dict()['tasks']
 
     for task in all_task_list['data']['description']:
         if str(task['_id']) in admin_own_tasks:
+
             # TODO törölni kell azon task elemket aminek a max_submission_number <= 0
             if int(task['max_submission_number']) <= 0:
-                task_list = profile.to_dict()['tasks']
                 task_list.remove(str(task['_id']))
-
-                low_level_profile_api.update_profile({
-                    'type': 'AdminProfile',
-                    'search': {
-                        '_id': ObjectId(profile.get_id())
-                    },
-                    'update': {
-                        'tasks': task_list
-                    }
-                })
-
-                #task_data, task_success = low_level_task_api.delete_task({'data': {'_id': str(task['_id'])}})
+                # task_data, task_success = low_level_task_api.delete_task({'data': {'_id': str(task['_id'])}})
             else:
                 task['_id'] = str(task['_id'])
                 tasks.append(task)
+
+    # TODO ha 1 db task is 0-ára kerül a counterrel akkor az összessel együtt eltűnik
+    low_level_profile_api.update_profile({
+        'type': 'AdminProfile',
+        'data': {
+            'search': {
+                '_id': ObjectId(profile.get_id())
+            },
+            'update': {
+                'tasks': task_list
+            }
+        }
+    })
 
     return json.dumps({
         'type': 'Success',
