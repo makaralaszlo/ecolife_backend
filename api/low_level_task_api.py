@@ -84,6 +84,18 @@ def get_task(data: dict) -> typing.Tuple[dict, bool]:
                }, True
 
 
+def decrease_counter(data: dict, max_submission_number: str) -> typing.Tuple[str, bool]:
+    task_db.update_element(
+        search_fields={
+            '_id': data['data']['_id']
+        },
+        update_data={
+            'max_submission_number': max_submission_number
+        })
+
+    return 'Task updated successfully!', True
+
+
 def delete_task(data: dict) -> typing.Tuple[dict, bool]:
     if '_id' not in data['data']:
         return {
@@ -129,8 +141,7 @@ def get_all_task() -> typing.Tuple[dict, bool]:
                    }
                }, True
 
-
-#if __name__ == '__main__':
+# if __name__ == '__main__':
 #    answ = create_task({
 #        'type': 'task',
 #        'data': {

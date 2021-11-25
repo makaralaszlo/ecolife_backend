@@ -669,6 +669,8 @@ def get_reward() -> str:
             }
         })
 
+    reward_resp, reward_success = low_level_reward_api.delete_reward({'data': {'_id': req_data['data']['_id']}})
+
     return json.dumps({
         'type': 'Success',
         'data': {
@@ -753,6 +755,21 @@ def update_image() -> str:
                 'description': upload_res
             }
         })
+
+    # TODO nem nézzük hogy a max submission number 0 vagy alatta van -e
+    if str(req['data']['state']) == 'ACCEPTED':
+        task_data, task_success = low_level_task_api.get_task({
+            'data': {
+                '_id': req['data']['task_id']
+            }
+        })
+        submission_counter = int(task_data['data']['description'][0]['max_submission_number']) - 1
+
+        task_resp, task_success = low_level_task_api.decrease_counter(data={
+            'data': {
+                '_id': ObjectId(req['data']['task_id'])
+            }
+        }, max_submission_number=str(submission_counter))
 
     return json.dumps({
         'type': 'Success',
@@ -955,7 +972,7 @@ def get_admin_task_screen() -> str:
         }
     })
 
-    #admin_own_tasks = profile.to_dict()['tasks']
+    # admin_own_tasks = profile.to_dict()['tasks']
     admin_own_tasks = profiles[0].to_dict()['tasks']
 
     if not all_task_success:
@@ -970,8 +987,25 @@ def get_admin_task_screen() -> str:
 
     for task in all_task_list['data']['description']:
         if str(task['_id']) in admin_own_tasks:
-            task['_id'] = str(task['_id'])
-            tasks.append(task)
+            # TODO törölni kell azon task elemket aminek a max_submission_number <= 0
+            if int(task['max_submission_number']) <= 0:
+                task_list = profile.to_dict()['tasks']
+                task_list.remove(str(task['_id']))
+
+                low_level_profile_api.update_profile({
+                    'type': 'AdminProfile',
+                    'search': {
+                        '_id': ObjectId(profile.get_id())
+                    },
+                    'update': {
+                        'tasks': task_list
+                    }
+                })
+
+                #task_data, task_success = low_level_task_api.delete_task({'data': {'_id': str(task['_id'])}})
+            else:
+                task['_id'] = str(task['_id'])
+                tasks.append(task)
 
     return json.dumps({
         'type': 'Success',
@@ -1024,19 +1058,54 @@ def upload_image() -> str:
         })
 
     image = req_data['data']['image']
-    upload_res, upload_success = low_level_api.upload_image_to_submit(req_data, image)
 
-    if not upload_success:
+    task_data, task_success = low_level_task_api.get_task({'data': {'_id': req_data['data']['task_id']}})
+
+    if not task_success:
+        return json.dumps(task_data)
+
+    # ha QR ez azt jelenti mert ha True akkor QR
+    if task_data['data']['description'][0]['immediately_evaluated']:
+        # a QR a task id-ből lett készitve, ha a TASK id és az image egyenlőre akkor automatikus accepted, egyébként rejected
+        submit_data, submit_success = '', False
+        if str(task_data['data']['description'][0]['_id']) == image:
+            submit_data, submit_success = low_level_submit_api.update_submit(data={
+                'data': {
+                    'task_id': req_data['data']['task_id'],
+                    'user_id': profile.get_id()
+                }
+            }, state='ACCEPTED')
+
+            # TODO meg kellene nézni hogy nem e kisebb már mint 0 vagy 0 a max subbmission number igy!
+            submission_counter = int(task_data['data']['description'][0]['max_submission_number']) - 1
+            task_resp, task_success = low_level_task_api.decrease_counter(data={
+                'data': {
+                    '_id': ObjectId(req_data['data']['task_id'])
+                }
+            }, max_submission_number=str(submission_counter))
+        else:
+            submit_data, submit_success = low_level_submit_api.update_submit(data={
+                'data': {
+                    'task_id': req_data['data']['task_id'],
+                    'user_id': profile.get_id()
+                }
+            }, state='REJECTED')
+        return json.dumps(submit_data)
+
+    else:
+        upload_res, upload_success = low_level_api.upload_image_to_submit(req_data, image)
+
+        if not upload_success:
+            return json.dumps({
+                'type': 'Error',
+                'data': {
+                    'description': upload_res
+                }
+            })
+
         return json.dumps({
-            'type': 'Error',
+            'type': 'Success',
             'data': {
                 'description': upload_res
             }
         })
-
-    return json.dumps({
-        'type': 'Success',
-        'data': {
-            'description': upload_res
-        }
-    })
