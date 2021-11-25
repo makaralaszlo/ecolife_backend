@@ -313,25 +313,17 @@ def get_user_task_screen():
 
         if submit_success and task_success:
             if str(submit_resp['data']['description'][0]['state']) == 'AVAILABLE':
-                available_tasks.append({
-                    'title': task_resp['data']['description'][0]['title'],
-                    'company': task_resp['data']['description'][0]['company']
-                })
+                task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
+                available_tasks.append(task_resp['data']['description'][0])
             elif str(submit_resp['data']['description'][0]['state']) == 'ACCEPTED':
-                accepted_tasks.append({
-                    'title': task_resp['data']['description'][0]['title'],
-                    'company': task_resp['data']['description'][0]['company']
-                })
+                task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
+                available_tasks.append(task_resp['data']['description'][0])
             elif str(submit_resp['data']['description'][0]['state']) == 'REJECTED':
-                rejected_tasks.append({
-                    'title': task_resp['data']['description'][0]['title'],
-                    'company': task_resp['data']['description'][0]['company']
-                })
+                task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
+                available_tasks.append(task_resp['data']['description'][0])
             elif str(submit_resp['data']['description'][0]['state']) == 'PENDING':
-                pending_tasks.append({
-                    'title': task_resp['data']['description'][0]['title'],
-                    'company': task_resp['data']['description'][0]['company']
-                })
+                task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
+                available_tasks.append(task_resp['data']['description'][0])
 
     return json.dumps({
         'type': 'Success',
@@ -438,7 +430,7 @@ def create_task() -> str:
     return json.dumps(resp)
 
 
-@high_api.route(f'{BASE_URI}/user_task_details_screen', methods=['GET'])
+@high_api.route(f'{BASE_URI}/user_task_details_screen', methods=['GET', 'POST'])
 def user_get_task() -> str:
     """
         Payload kinézete:
@@ -752,7 +744,6 @@ def update_image() -> str:
     })
 
 
-
 @high_api.route(f'{BASE_URI}/admin_get_task', methods=['GET', 'POST'])
 def get_admin_new_task_screen() -> str:
     req = request.json
@@ -820,6 +811,94 @@ def get_admin_new_task_screen() -> str:
     })
 
 
+@high_api.route(f'{BASE_URI}/admin_create_new_task', methods=['POST'])
+def admin_create_new_task():
+    req = request.json
+
+    try:
+        token = request.headers['Authorization'].split(' ')[-1]
+    except Exception as exp:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': str(exp)
+            }
+        })
+
+    resp = check_profile_login(token)
+    if type(resp) == str:
+        return json.dumps(resp)
+    else:
+        profile, success = resp
+
+    if type(profile) != AdminProfile:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'Only Admins can access these type of content!'
+            }
+        })
+
+    # TODO a reward expiration itt lehet állitani! never default most
+    reward_resp, reward_success = low_level_reward_api.create_reward({
+        'data': {
+            'title': req['data']['reward_title'],
+            'description': req['data']['reward_description'],
+            'company': profile.to_dict()['company'],
+            'redeem_code': '',
+            'expiration': 'never'
+        }
+    })
+
+    if not reward_success:
+        return json.dumps(reward_resp)
+
+    task_resp, task_success = low_level_task_api.create_task({
+        'data': {
+            'title': req['data']['task_title'],
+            'company': profile.to_dict()['company'],
+            'reward': reward_resp['data']['description'],
+            'max_submission_number': req['data']['max_submission_number'],
+            'immediately_evaluated': req['data']['immediately_evaluated'],
+            'description': req['data']['task_description'],
+            'expiration': 'never',
+            'submits': []
+        }
+    })
+
+    if not task_success:
+        return json.dumps(task_resp)
+
+    profile_tasks = profile.to_dict()['tasks']
+    profile_rewards = profile.to_dict()['rewards']
+
+    profile_tasks.append(task_resp['data']['description'])
+    profile_rewards.append(reward_resp['data']['description'])
+
+    profile_success = low_level_profile_api.update_profile(data={
+        'type': 'AdminProfile',
+        'data': {
+            'search':
+                {
+                    '_id': ObjectId(profile.to_dict()['_id'])
+                },
+            'update':
+                {
+                    'rewards': profile_rewards,
+                    'tasks': profile_tasks
+                }
+        }
+    })
+
+    return json.dumps({
+        'type': 'Success',
+        'data': {
+            'task': task_resp,
+            'reward': reward_resp,
+        }
+    })
+
+
 @high_api.route(f'{BASE_URI}/admin_task_screen', methods=['GET', 'POST'])
 def get_admin_task_screen() -> str:
     # TODO pending solutions is lehet le kellene legyen implementalva counter
@@ -850,7 +929,16 @@ def get_admin_task_screen() -> str:
         })
 
     all_task_list, all_task_success = low_level_task_api.get_all_task()
-    admin_own_tasks = profile.to_dict()['tasks']
+
+    profiles = low_level_profile_api.get_profile({
+        'type': 'AdminProfile',
+        'data': {
+            '_id': profile.get_id()
+        }
+    })
+
+    #admin_own_tasks = profile.to_dict()['tasks']
+    admin_own_tasks = profiles[0].to_dict()['tasks']
 
     if not all_task_success:
         return json.dumps({
