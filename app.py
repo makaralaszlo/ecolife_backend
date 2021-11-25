@@ -25,4 +25,4 @@ def hello():
 
 # TODO ezt törölni kell az Azure deployhoz
 #if __name__ == '__main__':
-#    app.run()
+#  app.run()

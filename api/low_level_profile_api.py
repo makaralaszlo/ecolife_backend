@@ -372,3 +372,14 @@ def get_profile(data: dict) -> typing.Union[str, typing.List[AdminProfile], typi
             return user_profiles
     else:
         return 'Incorrect type passed'
+
+
+def update_profile(data: dict) -> str:
+    if data['type'] == 'AdminProfile':
+        db_resp = admin_db.update_element(data['data']['search'], data['data']['update'])
+
+    elif data['type'] == 'UserProfile':
+        db_resp = user_db.update_element(data['data']['search'], data['data']['update'])
+
+    # TODO ez rossz a visszamenet !!!!
+    return ''

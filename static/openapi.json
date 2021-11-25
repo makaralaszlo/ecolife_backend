@@ -31,6 +31,14 @@
     {
       "name": "Submit",
       "description": "Submit-ekhez tartozó funkcionalitások."
+    },
+    {
+      "name": "Mobile dedicated",
+      "description": "A mobil nézethez tartozó business journeyknek megfelelő adatösszegyűtő high level API hívások."
+    },
+    {
+      "name": "Admin frontend dedicated",
+      "description": "Az admmin frontendhez tartozó endpointok, melyek az egyes high level API hívásokért felelősek."
     }
   ],
   "schemes": [
@@ -408,6 +416,9 @@
     },
     "/user_task_screen": {
       "get": {
+        "tags": [
+          "Mobile dedicated"
+        ],
         "summary": "A mobil készülékhez szükséges főképernyői adatokat összegyüjtő API endpoint.",
         "description": "Ezt csakis kizárólag a UserProfile-lal rendelkező felhasználók tudják lekérdezni, akik be vannak jelentkezve, vagyis a Bearer tokennel rendelkeznek az Authorizációs headerben.",
         "operationId": "getMobileTaskScreen",
@@ -538,6 +549,857 @@
                     "description": {
                       "type": "string",
                       "example": "Only Users can access these type of content!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user_profile_screen": {
+      "get": {
+        "tags": [
+          "Mobile dedicated"
+        ],
+        "summary": "A mobil készülékhez szükséges felhasználó profillal és kuponokkal kapcsolatos adatokat összegyüjtő API endpoint.",
+        "description": "Ezt csakis kizárólag a UserProfile-lal rendelkező felhasználók tudják lekérdezni, akik be vannak jelentkezve, vagyis a Bearer tokennel rendelkeznek az Authorizációs headerben.",
+        "operationId": "getUserProfileTaskScreen",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Profile",
+            "description": "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "UserProfile"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "object",
+                      "properties": {
+                        "profile": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string"
+                            },
+                            "email_address": {
+                              "type": "string"
+                            },
+                            "first_name": {
+                              "type": "string"
+                            },
+                            "last_name": {
+                              "type": "string"
+                            },
+                            "date_of_birth": {
+                              "type": "string"
+                            },
+                            "password": {
+                              "type": "string"
+                            },
+                            "rewards": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "tasks": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "coupons": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "company": {
+                                "type": "string"
+                              },
+                              "redeem_code": {
+                                "type": "string"
+                              },
+                              "expiration": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Error"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Only Users can access these type of content!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_reward": {
+      "get": {
+        "tags": [
+          "Reward"
+        ],
+        "summary": "Egy dedikált rewardot lehet az API segítségével lekérdezni.",
+        "description": "Előfeltétel a bejelentkezett Admin vagy User, illetve a paylaod-ban átadott _id a vonatkozó rewardra.",
+        "operationId": "getReward",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Reward",
+            "description": "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Reward"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "company": {
+                          "type": "string"
+                        },
+                        "redeem_code": {
+                          "type": "string"
+                        },
+                        "expiration": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Error"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Only Users can access these type of content!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user_task_details_screen": {
+      "get": {
+        "tags": [
+          "Mobile dedicated"
+        ],
+        "summary": "A mobil frontend egy dedikált task-ját lehet lekérdezni, úgy hogy vissza adja a felhasználó által csatolt/nem csatolt képet.",
+        "description": "Előfeltétel a bejelentkezett Admin vagy User, illetve a paylaod-ban átadott _id a vonatkozó taskra..",
+        "operationId": "getMobileTask",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Task",
+            "description": "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Reward"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "object",
+                      "properties": {
+                        "task": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string"
+                            },
+                            "company": {
+                              "type": "string"
+                            },
+                            "reward": {
+                              "type": "string"
+                            },
+                            "max_submission_number": {
+                              "type": "integer"
+                            },
+                            "immediately_evaluated": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "expiration": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "solution": {
+                          "type": "object",
+                          "properties": {
+                            "user_id": {
+                              "type": "string"
+                            },
+                            "task_id": {
+                              "type": "string"
+                            },
+                            "image": {
+                              "type": "string"
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "AVAILABLE",
+                                "ACCEPTED",
+                                "REJECTED",
+                                "PENDING"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Error"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Only Users can access these type of content!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/upload_image": {
+      "post": {
+        "tags": [
+          "Submit"
+        ],
+        "summary": "A UserProfile-al rendelkező felhasználó ezen keresztül tud image-t feltölteni a form-datában.",
+        "description": "Minden adatot a form-datában kell felküldeni, majd az a adatábzisban base64-ként tárolásra kerül a kép, melyet a rendszer base64ként fog visszadni.",
+        "operationId": "uploadImage",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Image",
+            "description": "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "ImageUpload"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "user_id": {
+                      "type": "string"
+                    },
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "image": {
+                      "type": "string",
+                      "example": "base64 encoded image string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "example": "'image' for image, 'qr' for qr",
+                      "enum": [
+                        "image",
+                        "qr"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Image uploaded successfully!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Error"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Only Users can access these type of content!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin_task_screen": {
+      "get": {
+        "tags": [
+          "Admin frontend dedicated"
+        ],
+        "summary": "Az AdminProfile-lal rendelkező felhasználó letudja kérdezni a saját task listáját.",
+        "description": "Az endpoint vissza adja az összes taskot a teljes információ listával velük kapcsolatban.",
+        "operationId": "getAdminTaskScreen",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "AdminProfile",
+            "description": "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Tasks"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string"
+                          },
+                          "company": {
+                            "type": "string"
+                          },
+                          "reward": {
+                            "type": "string"
+                          },
+                          "max_submission_number": {
+                            "type": "string"
+                          },
+                          "immediately_evaluated": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "expiration": {
+                            "type": "string"
+                          },
+                          "submits": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Error"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Only Admins can access these type of content!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin_get_task": {
+      "get": {
+        "tags": [
+          "Admin frontend dedicated"
+        ],
+        "summary": "Az AdminProfile-lal rendelkező felhasználó letudja kérdezni egy dedikált saját taskot.",
+        "description": "Az endpoint segítségével lekérdezhető az admin frontenden a new task felület, vagy pedig a korábbiakat lehet megtekinteni.",
+        "operationId": "getAdminNewTask",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "AdminProfile",
+            "description": "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Task"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string",
+                      "example": "Az adott task id-ja."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "task": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string"
+                            },
+                            "company": {
+                              "type": "string"
+                            },
+                            "reward": {
+                              "type": "string"
+                            },
+                            "max_submission_number": {
+                              "type": "integer"
+                            },
+                            "immediately_evaluated": {
+                              "type": "boolean"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "expiration": {
+                              "type": "string"
+                            },
+                            "submits": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "reward": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "company": {
+                          "type": "string"
+                        },
+                        "redeem_code": {
+                          "type": "string"
+                        },
+                        "expiration": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "submit": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string"
+                          },
+                          "user_id": {
+                            "type": "string"
+                          },
+                          "task_id": {
+                            "type": "string"
+                          },
+                          "image": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Error"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Only Admins can access these type of content!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/update_image": {
+      "post": {
+        "tags": [
+          "Submit"
+        ],
+        "summary": "Admin profilall rendelkező felhasználó ezzel tud state változtatni az egyes beküldött képeknek.",
+        "description": "A payloadba definiálni kell hogy ACCEPTED vagy REJECTED az adott kép.",
+        "operationId": "updateImage",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "Image",
+            "description": "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "ImageUpload"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "user_id": {
+                      "type": "string"
+                    },
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string",
+                      "example": "'ACCEPTED' vagy 'REJECTED'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Image updated successfully!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "Error"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "example": "Only Admins can access these type of content!"
                     }
                   }
                 }

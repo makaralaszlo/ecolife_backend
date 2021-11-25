@@ -93,7 +93,26 @@ def delete_task(data: dict) -> typing.Tuple[dict, bool]:
                    }
                }, False
 
-    db_resp, success = task_db.delete_element(data['data']['_id'])
+    db_resp, success = task_db.delete_element({'_id': ObjectId(data['data']['_id'])})
+
+    if not success:
+        return {
+                   'type': 'Error',
+                   'data': {
+                       'description': db_resp
+                   }
+               }, False
+    else:
+        return {
+                   'type': 'Success',
+                   'data': {
+                       'description': db_resp
+                   }
+               }, True
+
+
+def get_all_task() -> typing.Tuple[dict, bool]:
+    db_resp, success = task_db.get_element({})
 
     if not success:
         return {
@@ -115,7 +134,7 @@ def delete_task(data: dict) -> typing.Tuple[dict, bool]:
 #    answ = create_task({
 #        'type': 'task',
 #        'data': {
-#            'title': 'teszt4',
+#            'title': 'teszt10',
 #            'description': 'ez egy test reward',
 #            'company': 'teszt.hu',
 #            'redeem_code': '12345678',
