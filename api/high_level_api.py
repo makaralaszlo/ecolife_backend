@@ -385,9 +385,10 @@ def get_mobile_profile_screen() -> str:
         })
 
     profile_object = profile.to_dict()
+    coupon_array = low_level_profile_api.get_profile({'type': 'UserProfile', 'data': {'_id': profile.get_id()}})
     coupons = []
 
-    coupon_list = profile.to_dict()['rewards']
+    coupon_list = coupon_array[0].to_dict()['rewards']
     for coupon in coupon_list:
         reward_resp, reward_success = low_level_reward_api.get_reward({
             'data': {
@@ -668,8 +669,23 @@ def get_reward() -> str:
                 'description': reward_resp
             }
         })
-
-    reward_resp, reward_success = low_level_reward_api.delete_reward({'data': {'_id': req_data['data']['_id']}})
+    reward_list = profile.to_dict()['rewards']
+    print(req_data['data']['_id'] in reward_list)
+    print(reward_list)
+    if req_data['data']['_id'] in reward_list:
+        reward_list.remove(req_data['data']['_id'])
+    low_level_profile_api.update_profile({
+        'type': 'UserProfile',
+        'data': {
+            'search': {
+                '_id': ObjectId(profile.get_id())
+            },
+            'update': {
+                'rewards': reward_list
+            }
+        }
+    })
+    #reward_resp, reward_success = low_level_reward_api.delete_reward({'data': {'_id': req_data['data']['_id']}})
 
     return json.dumps({
         'type': 'Success',
