@@ -89,5 +89,4 @@ class DataBase:
     # TODO test this method
     def update_element(self, search_fields: dict, update_data: dict):
         resp = self.__collection.update_many(search_fields, {"$set": update_data})
-        print(resp)
         return resp

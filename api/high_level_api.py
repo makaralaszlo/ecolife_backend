@@ -37,10 +37,14 @@ def refresh_profile(profile_type: str, user_id: str):
     })
 
     for user in users:
-        if user.get_id() == user_id:
-            # TODO ez a hotflix nem biztos hogy jo amikor str kerul a user db-be
-            if type(refreshed_user[0]) == UserProfile or type(refreshed_user[0]) == AdminProfile:
-                user = refreshed_user[0]
+        try:
+            if user.get_id() == user_id:
+                # TODO ez a hotflix nem biztos hogy jo amikor str kerul a user db-be
+                if type(refreshed_user[0]) == UserProfile or type(refreshed_user[0]) == AdminProfile:
+                    user = refreshed_user[0]
+        except Exception as exp:
+            print(exp, user, user_id)
+            continue
 
 
 def check_profile_login(token) -> typing.Union[dict, typing.Tuple[UserProfile, bool]]:
@@ -64,11 +68,12 @@ def check_profile_login(token) -> typing.Union[dict, typing.Tuple[UserProfile, b
             }
         }
 
+    '''
     if type(profile) == UserProfile:
         refresh_profile('UserProfile', profile.get_id())
     elif type(profile) == AdminProfile:
         refresh_profile('AdminProfile', profile.get_id())
-
+    '''
     return profile, success
 
 
@@ -304,7 +309,6 @@ def get_user_task_screen():
                 'task_id': task
             }
         })
-
         task_resp, task_success = low_level_task_api.get_task({
             'data': {
                 '_id': task
@@ -313,25 +317,36 @@ def get_user_task_screen():
 
         if submit_success and task_success:
             if str(submit_resp['data']['description'][0]['state']) == 'AVAILABLE':
-                available_tasks.append({
-                    'title': task_resp['data']['description'][0]['title'],
-                    'company': task_resp['data']['description'][0]['company']
-                })
+                task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
+                available_tasks.append(task_resp['data']['description'][0])
             elif str(submit_resp['data']['description'][0]['state']) == 'ACCEPTED':
-                accepted_tasks.append({
-                    'title': task_resp['data']['description'][0]['title'],
-                    'company': task_resp['data']['description'][0]['company']
-                })
+                task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
+                accepted_tasks.append(task_resp['data']['description'][0])
+
+                # TODO hozzá kell adni az id-t a rewadrdhoz
+
+                profile_rewards = profile.to_dict()['rewards']
+                if str(task_resp['data']['description'][0]['reward']) not in profile_rewards:
+                    profile_rewards.append(str(task_resp['data']['description'][0]['reward']))
+
+                    low_level_profile_api.update_profile({
+                        'type': 'UserProfile',
+                        'data': {
+                            'search': {
+                                '_id': ObjectId(profile.get_id())
+                            },
+                            'update': {
+                                'rewards': profile_rewards
+                            }
+                        }
+                    })
+
             elif str(submit_resp['data']['description'][0]['state']) == 'REJECTED':
-                rejected_tasks.append({
-                    'title': task_resp['data']['description'][0]['title'],
-                    'company': task_resp['data']['description'][0]['company']
-                })
+                task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
+                rejected_tasks.append(task_resp['data']['description'][0])
             elif str(submit_resp['data']['description'][0]['state']) == 'PENDING':
-                pending_tasks.append({
-                    'title': task_resp['data']['description'][0]['title'],
-                    'company': task_resp['data']['description'][0]['company']
-                })
+                task_resp['data']['description'][0]['_id'] = str(task_resp['data']['description'][0]['_id'])
+                pending_tasks.append(task_resp['data']['description'][0])
 
     return json.dumps({
         'type': 'Success',
@@ -374,10 +389,10 @@ def get_mobile_profile_screen() -> str:
             }
         })
 
-    profile_object = profile.to_dict()
+    profile_object = low_level_profile_api.get_profile({'type': 'UserProfile', 'data': {'_id': profile.get_id()}})
     coupons = []
 
-    coupon_list = profile.to_dict()['rewards']
+    coupon_list = profile_object[0].to_dict()['rewards']
     for coupon in coupon_list:
         reward_resp, reward_success = low_level_reward_api.get_reward({
             'data': {
@@ -385,6 +400,7 @@ def get_mobile_profile_screen() -> str:
             }
         })
 
+        # TODO itt meg kell cisnálni hogy a reward_respből menejn közvetlen ki az adat ne igy!
         coupons.append({
             '_id': str(reward_resp['data']['description'][0]['_id']),
             'title': reward_resp['data']['description'][0]['title'],
@@ -399,7 +415,7 @@ def get_mobile_profile_screen() -> str:
         'data':
             {
                 'description': {
-                    'profile': profile_object,
+                    'profile': profile_object[0].to_dict(),
                     'coupons': coupons
                 }
             }
@@ -438,7 +454,7 @@ def create_task() -> str:
     return json.dumps(resp)
 
 
-@high_api.route(f'{BASE_URI}/user_task_details_screen', methods=['GET'])
+@high_api.route(f'{BASE_URI}/user_task_details_screen', methods=['GET', 'POST'])
 def user_get_task() -> str:
     """
         Payload kinézete:
@@ -609,7 +625,7 @@ def create_reward():
     return json.dumps(resp)
 
 
-@high_api.route(f'{BASE_URI}/get_reward', methods=['GET'])
+@high_api.route(f'{BASE_URI}/get_reward', methods=['GET', 'POST'])
 def get_reward() -> str:
     """
     Payload kinézete:
@@ -658,6 +674,28 @@ def get_reward() -> str:
                 'description': reward_resp
             }
         })
+
+    reward_list = low_level_profile_api.get_profile({
+        'type': 'UserProfile',
+        'data':{
+            '_id': profile.get_id()
+        }})[0].to_dict()['rewards']
+
+    if str(req_data['data']['_id']) in reward_list:
+        reward_list.remove(str(req_data['data']['_id']))
+
+    low_level_profile_api.update_profile({
+        'type': 'UserProfile',
+        'data': {
+            'search': {
+                '_id': ObjectId(profile.get_id())
+            },
+            'update': {
+                'rewards': reward_list
+            }
+        }
+    })
+    # reward_resp, reward_success = low_level_reward_api.delete_reward({'data': {'_id': req_data['data']['_id']}})
 
     return json.dumps({
         'type': 'Success',
@@ -744,13 +782,27 @@ def update_image() -> str:
             }
         })
 
+    # TODO nem nézzük hogy a max submission number 0 vagy alatta van -e
+    if str(req['data']['state']) == 'ACCEPTED':
+        task_data, task_success = low_level_task_api.get_task({
+            'data': {
+                '_id': req['data']['task_id']
+            }
+        })
+        submission_counter = int(task_data['data']['description'][0]['max_submission_number']) - 1
+
+        task_resp, task_success = low_level_task_api.decrease_counter(data={
+            'data': {
+                '_id': ObjectId(req['data']['task_id'])
+            }
+        }, max_submission_number=str(submission_counter))
+
     return json.dumps({
         'type': 'Success',
         'data': {
             'description': upload_res
         }
     })
-
 
 
 @high_api.route(f'{BASE_URI}/admin_get_task', methods=['GET', 'POST'])
@@ -820,6 +872,94 @@ def get_admin_new_task_screen() -> str:
     })
 
 
+@high_api.route(f'{BASE_URI}/admin_create_new_task', methods=['POST'])
+def admin_create_new_task():
+    req = request.json
+
+    try:
+        token = request.headers['Authorization'].split(' ')[-1]
+    except Exception as exp:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': str(exp)
+            }
+        })
+
+    resp = check_profile_login(token)
+    if type(resp) == str:
+        return json.dumps(resp)
+    else:
+        profile, success = resp
+
+    if type(profile) != AdminProfile:
+        return json.dumps({
+            'type': 'Error',
+            'data': {
+                'description': 'Only Admins can access these type of content!'
+            }
+        })
+
+    # TODO a reward expiration itt lehet állitani! never default most
+    reward_resp, reward_success = low_level_reward_api.create_reward({
+        'data': {
+            'title': req['data']['reward_title'],
+            'description': req['data']['reward_description'],
+            'company': profile.to_dict()['company'],
+            'redeem_code': '',
+            'expiration': 'never'
+        }
+    })
+
+    if not reward_success:
+        return json.dumps(reward_resp)
+
+    task_resp, task_success = low_level_task_api.create_task({
+        'data': {
+            'title': req['data']['task_title'],
+            'company': profile.to_dict()['company'],
+            'reward': reward_resp['data']['description'],
+            'max_submission_number': req['data']['max_submission_number'],
+            'immediately_evaluated': req['data']['immediately_evaluated'],
+            'description': req['data']['task_description'],
+            'expiration': 'never',
+            'submits': []
+        }
+    })
+
+    if not task_success:
+        return json.dumps(task_resp)
+
+    profile_tasks = profile.to_dict()['tasks']
+    profile_rewards = profile.to_dict()['rewards']
+
+    profile_tasks.append(task_resp['data']['description'])
+    profile_rewards.append(reward_resp['data']['description'])
+
+    profile_success = low_level_profile_api.update_profile(data={
+        'type': 'AdminProfile',
+        'data': {
+            'search':
+                {
+                    '_id': ObjectId(profile.to_dict()['_id'])
+                },
+            'update':
+                {
+                    'rewards': profile_rewards,
+                    'tasks': profile_tasks
+                }
+        }
+    })
+
+    return json.dumps({
+        'type': 'Success',
+        'data': {
+            'task': task_resp,
+            'reward': reward_resp,
+        }
+    })
+
+
 @high_api.route(f'{BASE_URI}/admin_task_screen', methods=['GET', 'POST'])
 def get_admin_task_screen() -> str:
     # TODO pending solutions is lehet le kellene legyen implementalva counter
@@ -850,7 +990,16 @@ def get_admin_task_screen() -> str:
         })
 
     all_task_list, all_task_success = low_level_task_api.get_all_task()
-    admin_own_tasks = profile.to_dict()['tasks']
+
+    profiles = low_level_profile_api.get_profile({
+        'type': 'AdminProfile',
+        'data': {
+            '_id': profile.get_id()
+        }
+    })
+
+    # admin_own_tasks = profile.to_dict()['tasks']
+    admin_own_tasks = profiles[0].to_dict()['tasks']
 
     if not all_task_success:
         return json.dumps({
@@ -861,11 +1010,32 @@ def get_admin_task_screen() -> str:
         })
 
     tasks = []
+    # TODO ezt is a DB-ből kellene lekérni!
+    task_list = profile.to_dict()['tasks']
 
     for task in all_task_list['data']['description']:
         if str(task['_id']) in admin_own_tasks:
-            task['_id'] = str(task['_id'])
-            tasks.append(task)
+
+            # TODO törölni kell azon task elemket aminek a max_submission_number <= 0
+            if int(task['max_submission_number']) <= 0:
+                task_list.remove(str(task['_id']))
+                # task_data, task_success = low_level_task_api.delete_task({'data': {'_id': str(task['_id'])}})
+            else:
+                task['_id'] = str(task['_id'])
+                tasks.append(task)
+
+    # TODO ha 1 db task is 0-ára kerül a counterrel akkor az összessel együtt eltűnik
+    low_level_profile_api.update_profile({
+        'type': 'AdminProfile',
+        'data': {
+            'search': {
+                '_id': ObjectId(profile.get_id())
+            },
+            'update': {
+                'tasks': task_list
+            }
+        }
+    })
 
     return json.dumps({
         'type': 'Success',
@@ -918,19 +1088,54 @@ def upload_image() -> str:
         })
 
     image = req_data['data']['image']
-    upload_res, upload_success = low_level_api.upload_image_to_submit(req_data, image)
 
-    if not upload_success:
+    task_data, task_success = low_level_task_api.get_task({'data': {'_id': req_data['data']['task_id']}})
+
+    if not task_success:
+        return json.dumps(task_data)
+
+    # ha QR ez azt jelenti mert ha True akkor QR
+    if task_data['data']['description'][0]['immediately_evaluated']:
+        # a QR a task id-ből lett készitve, ha a TASK id és az image egyenlőre akkor automatikus accepted, egyébként rejected
+        submit_data, submit_success = '', False
+        if str(task_data['data']['description'][0]['_id']) == image:
+            submit_data, submit_success = low_level_submit_api.update_submit(data={
+                'data': {
+                    'task_id': req_data['data']['task_id'],
+                    'user_id': profile.get_id()
+                }
+            }, state='ACCEPTED')
+
+            # TODO meg kellene nézni hogy nem e kisebb már mint 0 vagy 0 a max subbmission number igy!
+            submission_counter = int(task_data['data']['description'][0]['max_submission_number']) - 1
+            task_resp, task_success = low_level_task_api.decrease_counter(data={
+                'data': {
+                    '_id': ObjectId(req_data['data']['task_id'])
+                }
+            }, max_submission_number=str(submission_counter))
+        else:
+            submit_data, submit_success = low_level_submit_api.update_submit(data={
+                'data': {
+                    'task_id': req_data['data']['task_id'],
+                    'user_id': profile.get_id()
+                }
+            }, state='REJECTED')
+        return json.dumps(submit_data)
+
+    else:
+        upload_res, upload_success = low_level_api.upload_image_to_submit(req_data, image)
+
+        if not upload_success:
+            return json.dumps({
+                'type': 'Error',
+                'data': {
+                    'description': upload_res
+                }
+            })
+
         return json.dumps({
-            'type': 'Error',
+            'type': 'Success',
             'data': {
                 'description': upload_res
             }
         })
-
-    return json.dumps({
-        'type': 'Success',
-        'data': {
-            'description': upload_res
-        }
-    })

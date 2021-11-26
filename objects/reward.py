@@ -25,7 +25,7 @@ class Reward:
         if redeem_code != '':
             self.__redeem_code = redeem_code
         else:
-            self.__redeem_code = str(uuid.uuid4())
+            self.__redeem_code = str(uuid.uuid4()).split('-')[0]
         self.__expiration = expiration
 
     def to_dict(self) -> dict:

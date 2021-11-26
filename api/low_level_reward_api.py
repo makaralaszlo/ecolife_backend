@@ -9,14 +9,6 @@ reward_db = DataBase('EcoLife', 'reward')
 
 
 def create_reward(data: dict) -> typing.Tuple[dict, bool]:
-    if '_id' in data['data']:
-        return {
-                   'type': 'Error',
-                   'data': {
-                       'description': 'ID should not be provided!'
-                   }
-               }, False
-
     try:
         reward = Reward(_id=data['data']['_id'] if '_id' in data['data'] else 'null',
                         title=data['data']['title'],

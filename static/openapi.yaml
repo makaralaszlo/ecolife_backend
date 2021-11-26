@@ -973,6 +973,78 @@ paths:
                     type: "string"
                     example:
                       "Image updated successfully!"
+                      
+  /admin_create_new_task:
+    post:
+      tags:
+      - Admin frontend dedicated
+      summary: "A task és reward létrehozására szolgáló endpoint."
+      description: "Az admin profillal rendelkező felhasználó definiálja milyen taskot és rewardot szeretne létrehozni ennek függvényében az API elkészíti ezeket."
+      operationId: "createNewTask"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "AdminProfile"
+        description: "Felhasználóhoz tartozó Bearer token szükséges az authorizációs headerbe."
+        schema:
+          type: "object"
+          properties:
+            type:
+              type: "string"
+              example: "NewTask"
+            data:
+              type: "object"
+              properties:
+                reward_title:
+                  type: "string"
+                reward_description:
+                  type: "string"
+                task_title:
+                  type: "string"
+                reward:
+                  type: "string"
+                max_submission_number:
+                  type: "integer"
+                immediately_evaluated:
+                  type: "boolean"
+                task_description:
+                  type: "string"
+      responses:
+        "400":
+          description: "Error"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Error"
+              data:
+                type: "object"
+                properties:
+                  description:
+                    type: "string"
+                    example:
+                      "Only Admins can access these type of content!"
+        "200":
+          description: "Success"
+          schema:
+            type: "object"
+            properties:
+              type:
+                type: "string"
+                example:
+                  "Success"
+              data:
+                type: "object"
+                properties:
+                  data:
+                    type: "string"
+                    example:
+                      "Task and reward successfully created!"
                   
           
 securityDefinitions:
