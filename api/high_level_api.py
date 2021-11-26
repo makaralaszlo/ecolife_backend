@@ -37,10 +37,14 @@ def refresh_profile(profile_type: str, user_id: str):
     })
 
     for user in users:
-        if user.get_id() == user_id:
-            # TODO ez a hotflix nem biztos hogy jo amikor str kerul a user db-be
-            if type(refreshed_user[0]) == UserProfile or type(refreshed_user[0]) == AdminProfile:
-                user = refreshed_user[0]
+        try:
+            if user.get_id() == user_id:
+                # TODO ez a hotflix nem biztos hogy jo amikor str kerul a user db-be
+                if type(refreshed_user[0]) == UserProfile or type(refreshed_user[0]) == AdminProfile:
+                    user = refreshed_user[0]
+        except Exception as exp:
+            print(exp, user, user_id)
+            continue
 
 
 def check_profile_login(token) -> typing.Union[dict, typing.Tuple[UserProfile, bool]]:
