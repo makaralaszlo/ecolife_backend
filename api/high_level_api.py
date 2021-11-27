@@ -142,7 +142,7 @@ def login_user() -> str:
             }
         })
 
-    users += profiles[0]
+    users += profiles
 
     profile_bearer_token = ''
     for profile_id, bearer_token in zip(logged_in_users.values(), logged_in_users.keys()):
