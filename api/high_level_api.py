@@ -21,8 +21,14 @@ def get_profile_object(user_id: str) -> typing.Tuple[typing.Union[AdminProfile, 
     global users
 
     for user in users:
-        if user.get_id() == user_id:
-            return user, True
+        try:
+            if user.get_id() == user_id:
+                return user, True
+        except Exception as exp:
+            print(exp)
+            print(user)
+            print(user_id)
+            continue
     return 'Profile not loaded in correctly!', False
 
 
@@ -113,7 +119,6 @@ def login_user() -> str:
         })
 
     profiles = low_level_profile_api.get_profile(req_data)
-    users += profiles
 
     if type(profiles) is str:
         return json.dumps({
@@ -136,6 +141,8 @@ def login_user() -> str:
                 'description': 'No profile assigned to these values!'
             }
         })
+
+    users += profiles
 
     profile_bearer_token = ''
     for profile_id, bearer_token in zip(logged_in_users.values(), logged_in_users.keys()):
